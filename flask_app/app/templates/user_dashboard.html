@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}User Dashboard{% endblock %}
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h1 class="h4">Welcome, {{ current_user.username }}!</h1>
+    {% if current_user.is_verified %}
+      <p class="mb-0">Your account is verified. You can access all user features.</p>
+    {% else %}
+      <p class="mb-0 text-warning">Your account is not yet verified. Some features may be restricted.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

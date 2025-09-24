@@ -1,0 +1,507 @@
+from flask import Blueprint, render_template, redirect, url_for, flash, abort, request
+from flask_login import login_required, current_user
+from ..forms.auth import UserForm
+from ..repositories import user_repository
+from ..extensions import db
+from functools import wraps
+
+dashboard_bp = Blueprint("dashboard", __name__)
+
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.is_admin:
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated_function
+
+@dashboard_bp.route("/dashboard")
+@login_required
+def user_dashboard():
+    return render_template("user_dashboard.html")
+@dashboard_bp.route("/")
+@login_required
+def root():
+    return redirect(url_for("dashboard.user_dashboard"))
+
+@dashboard_bp.route("/admin")
+@login_required
+@admin_required
+def admin_dashboard():
+    q = request.args.get("q", "").strip().lower()
+    users = user_repository.get_all()
+    if q:
+        users = [u for u in users if q in u.username.lower() or q in u.email.lower()]
+    return render_template("admin_dashboard.html", users=users, q=q)
+
+@dashboard_bp.route("/admin/users/create", methods=["GET", "POST"])
+@login_required
+@admin_required
+def admin_user_create():
+    form = UserForm()
+    if form.validate_on_submit():
+        user_repository.create_user(
+            username=form.username.data,
+            email=form.email.data,
+            password=form.password.data or "changeme123",
+            is_admin=form.is_admin.data,
+            is_verified=form.is_verified.data,
+            is_blocked=form.is_blocked.data,
+            address=form.address.data,
+            number=form.number.data,
+            comment=form.comment.data,
+            category_names=form.category_names.data,
+            brand_names=form.brand_names.data,
+            assigned_date_range_start=form.assigned_date_range_start.data,
+            assigned_date_range_end=form.assigned_date_range_end.data,
+            subscription_date=form.subscription_date.data
+        )
+        flash("User created.", "success")
+        return redirect(url_for("dashboard.admin_dashboard"))
+    return render_template("admin_user_form.html", form=form, action="Create")
+
+@dashboard_bp.route("/admin/users/<int:user_id>/edit", methods=["GET", "POST"])
+@login_required
+@admin_required
+def admin_user_edit(user_id):
+    u = user_repository.get_by_id(user_id)
+    if not u:
+        abort(404)
+    form = UserForm(obj=u)
+    if request.method == "GET":
+        form.category_names.data = u.category_names
+        form.brand_names.data = u.brand_names
+        form.assigned_date_range_start.data = u.assigned_date_range_start
+        form.assigned_date_range_end.data = u.assigned_date_range_end
+        form.subscription_date.data = u.subscription_date
+    if form.validate_on_submit():
+        user_repository.update_user(
+            u,
+            username=form.username.data,
+            email=form.email.data,
+            password=form.password.data or None,
+            is_admin=form.is_admin.data,
+            is_verified=form.is_verified.data,
+            is_blocked=form.is_blocked.data,
+            address=form.address.data,
+            number=form.number.data,
+            comment=form.comment.data,
+            category_names=form.category_names.data,
+            brand_names=form.brand_names.data,
+            assigned_date_range_start=form.assigned_date_range_start.data,
+            assigned_date_range_end=form.assigned_date_range_end.data,
+            subscription_date=form.subscription_date.data
+        )
+        flash("User updated.", "success")
+        return redirect(url_for("dashboard.admin_dashboard"))
+    return render_template("admin_user_form.html", form=form, action="Update")
+
+@dashboard_bp.route("/admin/users/<int:user_id>/delete", methods=["POST"])
+@login_required
+@admin_required
+def admin_user_delete(user_id):
+    u = user_repository.get_by_id(user_id)
+    if not u:
+        abort(404)
+    if u.id == current_user.id:
+        flash("You cannot delete your own admin account.", "warning")
+        return redirect(url_for("dashboard.admin_dashboard"))
+    user_repository.delete_user(u)
+    flash("User deleted.", "success")
+    return redirect(url_for("dashboard.admin_dashboard"))
+
+@dashboard_bp.route("/admin/users/<int:user_id>/toggle-verify", methods=["POST"])
+@login_required
+@admin_required
+def admin_user_toggle_verify(user_id):
+    u = user_repository.get_by_id(user_id)
+    if not u:
+        abort(404)
+    u.is_verified = not u.is_verified
+    db.session.commit()
+    flash("Verification status updated.", "success")
+    return redirect(url_for("dashboard.admin_dashboard"))
+
+@dashboard_bp.route("/admin/users/<int:user_id>/toggle-block", methods=["POST"])
+@login_required
+@admin_required
+def admin_user_toggle_block(user_id):
+    u = user_repository.get_by_id(user_id)
+    if not u:
+        abort(404)
+    if u.id == current_user.id:
+        flash("You cannot block/unblock your own admin account.", "warning")
+        return redirect(url_for("dashboard.admin_dashboard"))
+    u.is_blocked = not u.is_blocked
+    db.session.commit()
+    flash("User block status updated.", "success")
+    return redirect(url_for("dashboard.admin_dashboard"))
+
+
+from flask import Blueprint, render_template, redirect, url_for, flash, request, abort
+from flask_login import login_required, current_user
+from ..forms.seller_form import SellerForm
+from ..repositories import seller_repository
+import re
+import pandas as pd
+from functools import wraps
+from ..repositories import (
+    user_repository,
+    category_repository,
+    contract_repository,
+    brand_repository
+)
+from ..forms.auth import UserForm
+from ..forms.category_form import CategoryForm
+from ..forms.contract_form import ContractForm
+from ..forms.brand_form import BrandForm
+from ..extensions import db
+import pandas as pd
+
+
+
+@dashboard_bp.route("/admin/categories/upload_excel", methods=["GET", "POST"])
+@login_required
+@admin_required
+def admin_category_upload_excel():
+    form = UserForm()
+    imported_categories = []
+    if request.method == "POST":
+        if 'excel_file' not in request.files:
+            flash("No file part", "danger")
+            return redirect(request.url)
+        file = request.files['excel_file']
+        if file.filename == '':
+            flash("No selected file", "danger")
+            return redirect(request.url)
+        if not (file.filename.endswith('.xls') or file.filename.endswith('.xlsx')):
+            flash("Please upload an Excel file (.xls or .xlsx)", "danger")
+            return redirect(request.url)
+        try:
+            df = pd.read_excel(file)
+            required_columns = {'value', 'text'}
+            if not required_columns.issubset(df.columns.str.lower()):
+                flash(f"Excel must contain columns: {', '.join(required_columns)}", "danger")
+                return redirect(request.url)
+            df.columns = df.columns.str.lower()
+            count = 0
+            for _, row in df.iterrows():
+                category_repository.add_category(row['value'], row['text'])
+                count += 1
+            flash(f"Successfully imported {count} categories.", "success")
+            imported_categories = df.to_dict(orient='records')
+        except Exception as e:
+            flash(f"Failed to process Excel file: {str(e)}", "danger")
+    return render_template("admin_user_upload_excel.html", form=form, action="Upload Categories", categories=imported_categories)
+
+@dashboard_bp.route("/admin/categories/manage", methods=["GET", "POST"])
+@login_required
+@admin_required
+def admin_category_manage():
+    form = CategoryForm()
+    categories = category_repository.get_all_categories()
+    if form.validate_on_submit():
+        if form.id.data:
+            success = category_repository.update_category(form.id.data, form.value.data, form.text.data)
+            if success:
+                flash("Category updated.", "success")
+            else:
+                flash("Failed to update category.", "danger")
+        else:
+            if category_repository.add_category(form.value.data, form.text.data):
+                flash("Category added.", "success")
+            else:
+                flash("Category with this value already exists.", "warning")
+        return redirect(url_for("dashboard.admin_category_manage"))
+    delete_id = request.args.get("delete_id")
+    if delete_id:
+        if category_repository.delete_category(delete_id):
+            flash("Category deleted.", "success")
+        else:
+            flash("Category not found.", "warning")
+        return redirect(url_for("dashboard.admin_category_manage"))
+    edit_id = request.args.get("edit_id")
+    if edit_id:
+        category = next((c for c in categories if str(c.id) == edit_id), None)
+        if category:
+            form.id.data = category.id
+            form.value.data = category.value
+            form.text.data = category.text
+    return render_template("admin_category_manage.html", form=form, categories=categories)
+
+@dashboard_bp.route("/admin/contracts", methods=["GET", "POST"])
+@login_required
+@admin_required
+def manage_contracts():
+    form = ContractForm()
+    page = request.args.get('page', 1, type=int)
+    filters = {k: v for k, v in {
+        'status': request.args.get('status', type=str),
+        'organization_type': request.args.get('organization_type', type=str),
+        'ministry': request.args.get('ministry', type=str),
+        'department': request.args.get('department', type=str),
+        'organization_name': request.args.get('organization_name', type=str),
+        'office_zone': request.args.get('office_zone', type=str),
+        'location': request.args.get('location', type=str),
+        'buyer_designation': request.args.get('buyer_designation', type=str),
+        'buying_mode': request.args.get('buying_mode', type=str),
+        'bid_number': request.args.get('bid_number', type=str),
+        'contract_date': request.args.get('contract_date', type=str),
+        'total': request.args.get('total', type=float)
+    }.items() if v is not None and v != ''}
+    contracts_paginated = contract_repository.get_contracts_filtered_paginated(filters, page=page, per_page=50)
+    contracts = contracts_paginated.items
+    if form.validate_on_submit():
+        data = form.data.copy()
+        data.pop('csrf_token', None)
+        items = [{
+            'service': data.get('service'),
+            'category_name': data.get('category_name'),
+            'product': data.get('product'),
+            'brand': data.get('brand'),
+            'model': data.get('model'),
+            'hsn_code': data.get('hsn_code'),
+            'ordered_quantity': data.get('ordered_quantity'),
+            'price': data.get('price')
+        }]
+        data['items'] = items
+        if contract_repository.add_contract(data):
+            flash('Contract added successfully.', 'success')
+        else:
+            flash('Failed to add contract.', 'danger')
+        return redirect(url_for('dashboard.manage_contracts'))
+    return render_template('admin_contracts.html', form=form, contracts=contracts, pagination=contracts_paginated, filters=filters)
+
+@dashboard_bp.route("/admin/contracts/delete", methods=["POST"])
+@login_required
+@admin_required
+def bulk_delete_contracts():
+    contract_ids = request.form.getlist('contract_ids')
+    contract_ids = list(map(int, contract_ids)) if contract_ids else []
+    deleted_count = contract_repository.bulk_delete(contract_ids)
+    flash(f"Deleted {deleted_count} contracts.", "success")
+    return redirect(url_for('dashboard.manage_contracts'))
+
+def get_unique_items(items):
+    seen = set()
+    unique_items = []
+    for item in items:
+        raw_service = item.get('service')
+        raw_product = item.get('product')
+
+        def clean_key(value):
+            if isinstance(value, str):
+                return value.strip().lower()
+            elif value is None or (isinstance(value, float) and pd.isna(value)):
+                return ''
+            else:
+                return str(value).strip().lower()
+
+        service_key = clean_key(raw_service)
+        product_key = clean_key(raw_product)
+
+        # Use service_key if present, else product_key as uniqueness key
+        unique_key = service_key or product_key
+
+        if unique_key and unique_key not in seen:
+            seen.add(unique_key)
+            unique_items.append(item)
+
+    return unique_items
+
+
+@dashboard_bp.route("/admin/contracts/upload_excel", methods=["GET", "POST"])
+@login_required
+@admin_required
+def upload_contracts_excel():
+    form = ContractForm()
+    if request.method == 'POST':
+        file = request.files.get('excel_file')
+        if not file or not (file.filename.endswith('.xls') or file.filename.endswith('.xlsx')):
+            flash("Upload a valid Excel file (.xls or .xlsx)", "danger")
+            return redirect(request.url)
+
+        df = pd.read_excel(file)
+        df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
+        contract_map = {}
+        contract_fields = ['contract_id', 'status', 'organization_type', 'ministry', 'department',
+                           'organization_name', 'office_zone', 'location', 'buyer_designation',
+                           'buying_mode', 'bid_number', 'contract_date', 'total']
+        item_fields = ['service', 'category_name', 'product', 'brand', 'model', 'hsn_code', 'ordered_quantity', 'price']
+        for _, row in df.iterrows():
+            cid = row['contract_id']
+            if cid not in contract_map:
+                contract_map[cid] = {f: row.get(f) for f in contract_fields}
+                contract_map[cid]['items'] = []
+            item = {f: row.get(f) for f in item_fields}
+            contract_map[cid]['items'].append(item)
+
+        # Remove duplicate products per contract before saving
+        contracts = []
+        for cid, contract_data in contract_map.items():
+            contract_data['items'] = get_unique_items(contract_data['items'])
+            contracts.append(contract_data)
+
+        count = 0
+        for contract_data in contracts:
+            if contract_repository.add_contract(contract_data):
+                count += 1
+
+        flash(f"Successfully imported {count} contracts.", "success")
+        return redirect(url_for('dashboard.manage_contracts'))
+
+    return render_template("admin_contract_upload.html", form=form)
+
+
+
+@dashboard_bp.route("/admin/brands/manage", methods=["GET", "POST"])
+@login_required
+@admin_required
+def admin_brand_manage():
+    form = BrandForm()
+    brands = brand_repository.get_all_brands()
+    if form.validate_on_submit():
+        if form.id.data:
+            success = brand_repository.update_brand(form.id.data, form.code.data, form.product_count.data, form.name.data)
+            if success:
+                flash("Brand updated.", "success")
+            else:
+                flash("Failed to update brand.", "danger")
+        else:
+            if brand_repository.add_brand(form.code.data, form.product_count.data, form.name.data):
+                flash("Brand added.", "success")
+            else:
+                flash("Brand with this code already exists.", "warning")
+        return redirect(url_for("dashboard.admin_brand_manage"))
+    delete_id = request.args.get("delete_id")
+    if delete_id:
+        if brand_repository.delete_brand(delete_id):
+            flash("Brand deleted.", "success")
+        else:
+            flash("Brand not found.", "warning")
+        return redirect(url_for("dashboard.admin_brand_manage"))
+    edit_id = request.args.get("edit_id")
+    if edit_id:
+        brand = next((b for b in brands if str(b.id) == edit_id), None)
+        if brand:
+            form.id.data = brand.id
+            form.code.data = brand.code
+            form.product_count.data = brand.product_count
+            form.name.data = brand.name
+    return render_template("admin_brand_manage.html", form=form, brands=brands)
+
+@dashboard_bp.route("/admin/brands/upload_excel", methods=["GET", "POST"])
+@login_required
+@admin_required
+def admin_brand_upload_excel():
+    if request.method == "POST":
+        file = request.files.get("excel_file")
+        if not file or not (file.filename.endswith('.xls') or file.filename.endswith('.xlsx')):
+            flash("Please upload a valid Excel file (.xls or .xlsx)", "danger")
+            return redirect(request.url)
+        df = pd.read_excel(file)
+        df.columns = [c.strip().lower().replace(' ', '_') for c in df.columns]
+        required_cols = {'code', 'product_count', 'brand'}
+        if not required_cols.issubset(df.columns):
+            flash("Excel file missing required columns: code, product_count, brand", "danger")
+            return redirect(request.url)
+        count = 0
+        for _, row in df.iterrows():
+            code_val = row['code'] if not pd.isna(row['code']) else 'Unknown'
+            product_count_val = int(row['product_count']) if not pd.isna(row['product_count']) else 0
+            brand_val = row['brand'] if not pd.isna(row['brand']) else 'Unknown'
+            brand_repository.add_brand(code_val, product_count_val, brand_val)
+            count += 1
+        flash(f"Successfully imported {count} brands.", "success")
+        return redirect(url_for("dashboard.admin_brand_manage"))
+    return render_template("admin_brand_upload.html")
+
+# -----------------------------seller----------------------------
+
+
+@dashboard_bp.route('/admin/sellers/manage', methods=['GET', 'POST'])
+@login_required
+def manage_sellers():
+    form = SellerForm()
+    page = request.args.get('page', 1, type=int)
+    filters = {k: v for k, v in {
+        'contract_no': request.args.get('contract_no', type=str),
+        'category_name': request.args.get('category_name', type=str),
+        'seller_id': request.args.get('seller_id', type=str),
+        'company_name': request.args.get('company_name', type=str),
+        'contact_no': request.args.get('contact_no', type=str),
+        'email': request.args.get('email', type=str),
+        'msme_reg_no': request.args.get('msme_reg_no', type=str),
+        'gstin': request.args.get('gstin', type=str),
+        'generated_date': request.args.get('generated_date', type=str),
+    }.items() if v}
+    sellers_paginated = seller_repository.get_sellers_filtered_paginated(filters, page=page)
+    sellers = sellers_paginated.items
+
+    if form.validate_on_submit():
+        data = form.data.copy()
+        data.pop('csrf_token', None)
+        if seller_repository.add_or_update_seller(data):
+            flash("Seller added/updated successfully.", "success")
+        else:
+            flash("Failed to add/update seller.", "danger")
+        return redirect(url_for('dashboard.manage_sellers'))
+
+    delete_id = request.args.get('delete_id', type=int)
+    if delete_id:
+        deleted_count = seller_repository.bulk_delete_sellers([delete_id])
+        if deleted_count > 0:
+            flash("Seller deleted successfully.", "success")
+        else:
+            flash("Seller not found.", "warning")
+        return redirect(url_for('dashboard.manage_sellers'))
+
+    edit_id = request.args.get('edit_id', type=int)
+    if edit_id:
+        seller = next((s for s in sellers if s.id == edit_id), None)
+        if seller:
+            form.contract_no.data = seller.contract_no
+            form.generated_date.data = seller.generated_date
+            form.category_name.data = seller.category_name
+            form.seller_id.data = seller.seller_id
+            form.company_name.data = seller.company_name
+            form.contact_no.data = seller.contact_no
+            form.email.data = seller.email
+            form.address.data = seller.address
+            form.msme_reg_no.data = seller.msme_reg_no
+            form.gstin.data = seller.gstin
+
+    return render_template("admin_seller_manage.html", form=form, sellers=sellers, pagination=sellers_paginated, filters=filters)
+@dashboard_bp.route('/admin/sellers/upload_excel', methods=['GET', 'POST'])
+@login_required
+def upload_sellers_excel():
+    form = SellerForm()
+    if request.method == 'POST':
+        file = request.files.get('excel_file')
+        if not file or not (file.filename.endswith('.xls') or file.filename.endswith('.xlsx')):
+            flash("Upload a valid Excel file (.xls or .xlsx)", "danger")
+            return redirect(request.url)
+
+        def clean_column_name(c):
+            c = c.strip().lower()
+            c = c.replace(' ', '_')
+            c = re.sub(r'[^\w]', '', c)  # remove dots and other punctuation
+            return c
+
+        df = pd.read_excel(file)
+        df.columns = [clean_column_name(c) for c in df.columns]
+
+        seller_fields = ['contract_no', 'generated_date', 'category_name', 'seller_id', 'company_name',
+                         'contact_no', 'email', 'address', 'msme_reg_no', 'gstin']
+
+        count = 0
+        for _, row in df.iterrows():
+            data = {field: row.get(field) for field in seller_fields}
+            if seller_repository.add_or_update_seller(data):
+                count += 1
+
+        flash(f"Successfully imported {count} sellers.", "success")
+        return redirect(url_for('dashboard.manage_sellers'))
+
+    return render_template('admin_seller_upload.html', form=form)
+

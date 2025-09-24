@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Upload Contracts via Excel{% endblock %}
+{% block content %}
+<!-- <body> -->
+  <h1>Contracts</h1>
+  
+  <form method="get" action="{{ url_for('dashboard.manage_contracts') }}">
+    <!-- Filters -->
+    Organization Type: <input type="text" name="organization_type" value="{{ filters.get('organization_type', '') }}">
+    Ministry: <input type="text" name="ministry" value="{{ filters.get('ministry', '') }}">
+    Contract Date: <input type="date" name="contract_date" value="{{ filters.get('contract_date', '') }}">
+    <button type="submit">Filter</button>
+    <a href="{{ url_for('dashboard.manage_contracts') }}">Clear</a>
+  </form>
+  
+  <form method="post" action="{{ url_for('dashboard.bulk_delete_contracts') }}">
+    {{ form.csrf_token }}
+    <table border="1" cellpadding="5" cellspacing="0">
+      <thead>
+        <tr>
+          <th>
+            <input type="checkbox" id="select-all" />
+          </th>
+          <th>Contract ID</th>
+          <th>Organization</th>
+          <th>Contract Date</th>
+          <th>Total</th>
+          <th>Items Count</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for contract in contracts %}
+        <!-- Contract Summary Row -->
+        <tr style="background-color:#e0e0e0;">
+          <td><input type="checkbox" class="select-item" name="contract_ids" value="{{ contract.id }}"></td>
+          <td>{{ contract.contract_id }}</td>
+          <td>{{ contract.organization_name }}</td>
+          <td>{{ contract.contract_date.strftime('%Y-%m-%d') if contract.contract_date else '' }}</td>
+          <td>{{ contract.total }}</td>
+          <td>{{ contract.items | length if contract.items else 0 }}</td>
+        </tr>
+        <!-- Items Rows -->
+        <tr>
+          <td colspan="6">
+            <table border="1" cellpadding="3" cellspacing="0" width="100%">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Category Name</th>
+                  <th>Service</th>
+                  <th>Brand</th>
+                  <th>Model</th>
+                  <th>HSN Code</th>
+                  <th>Ordered Quantity</th>
+                  <th>Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% if contract.items %}
+                  {% for item in contract.items %}
+                  <tr>
+                    <td>{{ item.product }}</td>
+                    <td>{{ item.category_name }}</td>
+                    <td>{{ item.service }}</td>
+                    <td>{{ item.brand }}</td>
+                    <td>{{ item.model }}</td>
+                    <td>{{ item.hsn_code }}</td>
+                    <td>{{ item.ordered_quantity }}</td>
+                    <td>{{ item.price }}</td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr>
+                    <td colspan="8" style="text-align:center;">No items</td>
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6">No contracts found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <button type="submit">Delete Selected</button>
+  </form>
+
+  <!-- Pagination controls -->
+  <div>
+    {% if pagination.has_prev %}
+      <a href="{{ url_for('dashboard.manage_contracts', page=pagination.prev_num) }}">Previous</a>
+    {% endif %}
+    Page {{ pagination.page }} of {{ pagination.pages }}
+    {% if pagination.has_next %}
+      <a href="{{ url_for('dashboard.manage_contracts', page=pagination.next_num) }}">Next</a>
+    {% endif %}
+  </div>
+
+  <hr>
+
+  <!-- Add New Contract form ... same as your existing code -->
+
+  <a href="{{ url_for('dashboard.upload_contracts_excel') }}">Upload Contracts via Excel</a>
+
+  <script>
+  // Select All checkbox toggles all item checkboxes on current page
+  document.getElementById('select-all').addEventListener('change', function() {
+    const checked = this.checked;
+    document.querySelectorAll('.select-item').forEach(function(checkbox) {
+      checkbox.checked = checked;
+    });
+  });
+  </script>
+<!-- 
+</body>
+</html> -->
+{% endblock %}

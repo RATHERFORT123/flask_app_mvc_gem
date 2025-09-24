@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Upload Sellers Excel{% endblock %}
+
+{% block content %}
+<h1>Upload Sellers from Excel</h1>
+
+<!-- Flash messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div>
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<form method="post" enctype="multipart/form-data" action="{{ url_for('dashboard.upload_sellers_excel') }}">
+  {{ form.hidden_tag() }}
+  <div class="form-group">
+    <label for="excel_file">Excel File (.xls or .xlsx):</label>
+    <input type="file" id="excel_file" name="excel_file" class="form-control-file" accept=".xls,.xlsx" required>
+  </div>
+  <button type="submit" class="btn btn-primary">Upload</button>
+  <a href="{{ url_for('dashboard.manage_sellers') }}" class="btn btn-secondary">Back to Sellers</a>
+</form>
+{% endblock %}

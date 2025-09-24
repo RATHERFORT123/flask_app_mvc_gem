@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+{% block title %}sellers{% endblock %}
+{% block content %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OEM Analytics - Analytics Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background-color: #f0f2f5;
+        }
+        .container-fluid {
+            padding: 20px 40px;
+        }
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .chart-placeholder {
+            min-height: 180px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .monthly-order-value-chart {
+            background: linear-gradient(to top, #e0efff 0%, #ffffff 100%);
+            border: 1px solid #d0e0f0;
+            position: relative;
+            overflow: hidden;
+        }
+        .monthly-order-value-chart::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M0,70 Q25,30 50,60 T100,20" stroke="%2384a5ff" fill="none" stroke-width="2"/></svg>') no-repeat center bottom / 100% 100%;
+            opacity: 0.8;
+            transform: translateY(20px);
+        }
+
+        .quarterly-performance-chart {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            display: flex;
+            align-items: flex-end;
+            padding: 10px;
+            gap: 5px;
+        }
+        .bar {
+            width: 10px;
+            background-color: #0d6efd;
+            border-radius: 2px 2px 0 0;
+            flex-shrink: 0;
+        }
+        .bar:nth-child(1) { height: 10%; background-color: #adb5bd; }
+        .bar:nth-child(2) { height: 15%; background-color: #adb5bd; }
+        .bar:nth-child(3) { height: 5%; background-color: #adb5bd; }
+        .bar:nth-child(4) { height: 12%; background-color: #adb5bd; }
+        .bar:nth-child(5) { height: 20%; background-color: #adb5bd; }
+        .bar:nth-child(6) { height: 10%; background-color: #adb5bd; }
+        .bar:nth-child(7) { height: 25%; background-color: #adb5bd; }
+        .bar:nth-child(8) { height: 18%; background-color: #adb5bd; }
+        .bar:nth-child(9) { height: 30%; background-color: #adb5bd; }
+        .bar:nth-child(10) { height: 80%; background-color: #0d6efd; }
+        .bar:nth-child(11) { height: 45%; background-color: #0d6efd; }
+        .bar:nth-child(12) { height: 10%; background-color: #0d6efd; }
+
+        .pie-chart-placeholder {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: conic-gradient(
+                #28a745 0% 35%,
+                #0d6efd 35% 65%,
+                #ffc107 65% 80%,
+                #dc3545 80% 90%,
+                #6f42c2 90% 95%,
+                #fd7e14 95% 100%
+            );
+            margin: auto;
+        }
+        .doughnut-chart-placeholder {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: conic-gradient(
+                #845ef7 0% 70%,
+                #fd8e33 70% 100%
+            );
+            margin: auto;
+            position: relative;
+        }
+        .doughnut-chart-placeholder::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70px;
+            height: 70px;
+            background-color: #f8f9fa;
+            border-radius: 50%;
+        }
+
+        .progress-bar-container {
+            height: 10px;
+            border-radius: 5px;
+            background-color: #e9ecef;
+            overflow: hidden;
+        }
+        .progress-bar-custom {
+            height: 100%;
+            border-radius: 5px;
+            background-color: #845ef7;
+        }
+        .progress-bar-custom.blue {
+            background-color: #0d6efd;
+        }
+
+        .form-check-label {
+            cursor: pointer;
+        }
+        .sidebar-brand-filter {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 1rem;
+            position: fixed;
+            right: 40px;
+            top: 40px; 
+            width: 250px;
+            z-index: 1000;
+        }
+        .sidebar-brand-filter .form-check {
+            margin-bottom: 0.5rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-right: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .legend-color-box {
+            width: 12px;
+            height: 12px;
+            margin-right: 0.5rem;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid py-4">
+    
+    
+   
+        <div class="d-flex justify-content-between align-items-center mb-4">
+        
+        <div>
+            <h2 class="mb-1">Analytics Dashboard</h2>
+        </div>
+  
+        <div class="d-flex align-items-center">
+            <div class="input-group input-group-sm me-2">
+                <input type="text" class="form-control" placeholder="Search by Contract ID, Buyer, Seller or Product" aria-label="Search">
+                <span class="input-group-text"><i class="fas fa-search"></i></span>
+            </div>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
+                <input type="text" class="form-control" placeholder="dd/mm/yyyy" aria-label="Date From">
+                <span class="input-group-text">to</span>
+                <input type="text" class="form-control" placeholder="dd/mm/yyyy" aria-label="Date To">
+                <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label for="status" class="form-label text-muted small">Status</label>
+                    <select class="form-select form-select-sm" id="status">
+                        <option selected>All Statuses</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="type" class="form-label text-muted small">Type</label>
+                    <select class="form-select form-select-sm" id="type">
+                        <option selected>All Types</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="valueRange" class="form-label text-muted small">Value Range</label>
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control" placeholder="Min">
+                        <span class="input-group-text">-</span>
+                        <input type="text" class="form-control" placeholder="Max">
+                    </div>
+                </div>
+            </div>
+            <div class="row g-3 mt-2">
+                <div class="col-md-3">
+                    <label for="sellingAs" class="form-label text-muted small">Selling As</label>
+                    <select class="form-select form-select-sm" id="sellingAs">
+                        <option selected>Select</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="category" class="form-label text-muted small">Category</label>
+                    <select class="form-select form-select-sm" id="category">
+                        <option selected>Select Category</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="quadrant" class="form-label text-muted small">Quadrant</label>
+                    <select class="form-select form-select-sm" id="quadrant">
+                        <option selected>Select Quadrant</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end justify-content-end">
+                    <a href="#" class="btn btn-link text-decoration-none text-muted">Clear All Filters</a>
+                </div>
+            </div>
+        </div>
+    
+
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-3">
+            <h5 class="mb-0">Analytics Overview</h5>
+            <a href="#" class="btn btn-link text-decoration-none">View Full Analytics</a>
+        </div>
+        <div class="card-body">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <h6 class="mb-3">Monthly Order Value <span class="text-muted small">Total: ₹40,576,309.26</span></h6>
+                    <div class="chart-placeholder monthly-order-value-chart">
+                        <div class="position-absolute top-0 start-0 text-muted small p-2">
+                            <p class="mb-0">₹30,000,000</p>
+                            <p class="mb-0">₹20,000,000</p>
+                            <p class="mb-0">₹10,000,000</p>
+                            <p class="mb-0">₹0</p>
+                            <div class="position-absolute bottom-0 start-0 w-100 d-flex justify-content-between p-2">
+                                <span class="small">Sept 2022</span>
+                                <span class="small">Dec 2022</span>
+                                <span class="small">Jan 2023</span>
+                                <span class="small">Mar 2023</span>
+                                <span class="small">May 2023</span>
+                                <span class="small">Jun 2023</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="mb-3">Quarterly Performance <span class="text-muted small">Total: ₹40,553,212.36</span></h6>
+                    <div class="chart-placeholder quarterly-performance-chart">
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="position-absolute bottom-0 start-0 w-100 d-flex justify-content-around p-2">
+                            <span class="small" style="margin-left: -5px;">Q3 2022</span>
+                            <span class="small" style="margin-left: -5px;">Q4 2022</span>
+                            <span class="small" style="margin-left: -5px;">Q1 2023</span>
+                            <span class="small" style="margin-left: -5px;">Q2 2023</span>
+                            <span class="small" style="margin-left: -5px;">Q3 2023</span>
+                            <span class="small" style="margin-left: -5px;">Q4 2023</span>
+                            <span class="small" style="margin-left: -5px;">Q1 2024</span>
+                            <span class="small" style="margin-left: -5px;">Q2 2024</span>
+                            <span class="small" style="margin-left: -5px;">Q3 2024</span>
+                            <span class="small" style="margin-left: -5px;">Q4 2024</span>
+                            <span class="small" style="margin-left: -5px;">Q1 2025</span>
+                            <span class="small" style="margin-left: -5px;">Q2 2025</span>
+                        </div>
+                        <div class="position-absolute top-0 start-0 text-muted small p-2">
+                            <p class="mb-0">₹30,000,000</p>
+                            <p class="mb-0">₹20,000,000</p>
+                            <p class="mb-0">₹10,000,000</p>
+                            <p class="mb-0">₹0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row g-4 mt-3">
+                <div class="col-md-6">
+                    <h6 class="mb-3">Order Status Distribution</h6>
+                    <div class="d-flex align-items-center">
+                        <div class="chart-placeholder pie-chart-placeholder me-4"></div>
+                        <div class="d-flex flex-wrap">
+                            <div class="legend-item"><span class="legend-color-box" style="background-color: #28a745;"></span> Order Completed</div>
+                            <div class="legend-item"><span class="legend-color-box" style="background-color: #0d6efd;"></span> Fulfilment in Progress</div>
+                            <div class="legend-item"><span class="legend-color-box" style="background-color: #ffc107;"></span> Order Accepted</div>
+                            <div class="legend-item"><span class="legend-color-box" style="background-color: #dc3545;"></span> Order Cancelled</div>
+                            <div class="legend-item"><span class="legend-color-box" style="background-color: #6f42c2;"></span> Waiting for Seller Confirmation</div>
+                            <div class="legend-item"><span class="legend-color-box" style="background-color: #fd7e14;"></span> Waiting for Seller Payment</div>
+                            <div class="legend-item"><span class="legend-color-box" style="background-color: #fd7e14;"></span> Cancellation Requested by Buyer</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="mb-3">Procurement Type Comparison</h6>
+                    <div class="d-flex align-items-center">
+                        <div class="chart-placeholder doughnut-chart-placeholder me-4"></div>
+                        <div class="d-flex flex-column">
+                            <div class="legend-item"><span class="legend-color-box" style="background-color: #845ef7;"></span> Direct</div>
+                            <div class="legend-item"><span class="legend-color-box" style="background-color: #fd8e33;"></span> Bid/RFI/RFP</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row g-4 mt-3">
+                <div class="col-md-6">
+                    <h6 class="mb-3">Top Sellers</h6>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small text-muted"><span>SHIV ENTERPRISES C</span><span>75%</span></div>
+                        <div class="progress-bar-container"><div class="progress-bar-custom" style="width: 75%;"></div></div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small text-muted"><span>R K ENTERPRISES H</span><span>60%</span></div>
+                        <div class="progress-bar-container"><div class="progress-bar-custom" style="width: 60%;"></div></div>
+                    </div>
+                    <div>
+                        <div class="d-flex justify-content-between small text-muted"><span>RS INFOTECH J</span><span>40%</span></div>
+                        <div class="progress-bar-container"><div class="progress-bar-custom" style="width: 40%;"></div></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="mb-3">Brand Performance</h6>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small text-muted"><span>ProDot</span><span>85%</span></div>
+                        <div class="progress-bar-container"><div class="progress-bar-custom blue" style="width: 85%;"></div></div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small text-muted"><span>NEXIUM</span><span>65%</span></div>
+                        <div class="progress-bar-container"><div class="progress-bar-custom blue" style="width: 65%;"></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+
+{% endblock %}

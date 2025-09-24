@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} Upload via Excel{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        <h1 class="h4 mb-3">{{ action }} Upload via Excel</h1>
+        <form method="POST" enctype="multipart/form-data">
+          {{ form.hidden_tag() }}
+          <div class="mb-3">
+            <label for="excel_file" class="form-label">Choose Excel File</label>
+            <input
+              type="file"
+              name="excel_file"
+              id="excel_file"
+              class="form-control"
+              accept=".xls,.xlsx"
+              required
+            />
+          </div>
+          {{ form.submit(class="btn btn-primary") }}
+          <a href="{{ url_for('dashboard.admin_dashboard') }}" class="btn btn-secondary ms-2">Cancel</a>
+        </form>
+      </div>
+    </div>
+
+    {% if categories %}
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h4>Imported Data</h4>
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Value</th>
+              <th>Text</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in categories %}
+            <tr>
+              <td>{{ row.value }}</td>
+              <td>{{ row.text }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+    <a href="{{ url_for('dashboard.admin_category_manage') }}" class="btn btn-secondary ms-2">Manage Categorys</a>
+  </div>
+</div>
+{% endblock %}
+
+

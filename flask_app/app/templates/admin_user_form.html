@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}{{ action }} User{% endblock %}
+
+{% block content %}
+<h2>{{ action }} User</h2>
+
+<form method="POST">
+  {{ form.hidden_tag() }}
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="mb-3">
+    {{ form.username.label(class="form-label") }}
+    {{ form.username(class="form-control") }}
+    {% for e in form.username.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+  </div>
+  <div class="mb-3">
+    {{ form.email.label(class="form-label") }}
+    {{ form.email(class="form-control") }}
+    {% for e in form.email.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+  </div>
+  <div class="mb-3">
+    {{ form.password.label(class="form-label") }}
+    {{ form.password(class="form-control") }}
+    {% for e in form.password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+  </div>
+  <div class="mb-3">
+    {{ form.is_admin.label(class="form-label") }}
+    {{ form.is_admin() }}
+  </div>
+  <div class="mb-3">
+    {{ form.is_verified.label(class="form-label") }}
+    {{ form.is_verified() }}
+  </div>
+  <div class="mb-3">
+    {{ form.is_blocked.label(class="form-label") }}
+    {{ form.is_blocked() }}
+  </div>
+  <div class="mb-3">
+    {{ form.address.label(class="form-label") }}
+    {{ form.address(class="form-control") }}
+    {% for e in form.address.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+  </div>
+  <div class="mb-3">
+    {{ form.number.label(class="form-label") }}
+    {{ form.number(class="form-control") }}
+    {% for e in form.number.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+  </div>
+  <div class="mb-3">
+    {{ form.comment.label(class="form-label") }}
+    {{ form.comment(class="form-control") }}
+    {% for e in form.comment.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+  </div>
+  <div class="mb-3">
+    {{ form.category_names.label(class="form-label") }}
+    {{ form.category_names(class="form-control", placeholder="Enter categories separated by commas") }}
+    {% for e in form.category_names.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+  </div>
+  <div class="mb-3">
+    {{ form.brand_names.label(class="form-label") }}
+    {{ form.brand_names(class="form-control", placeholder="Enter brands separated by commas") }}
+    {% for e in form.brand_names.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+  </div>
+  <div class="mb-3">
+    {{ form.assigned_date_range_start.label(class="form-label") }}
+    {{ form.assigned_date_range_start(class="form-control", type="date") }}
+    {% for e in form.assigned_date_range_start.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+  </div>
+  <div class="mb-3">
+    {{ form.assigned_date_range_end.label(class="form-label") }}
+    {{ form.assigned_date_range_end(class="form-control", type="date") }}
+    {% for e in form.assigned_date_range_end.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+  </div>
+  <div class="mb-3">
+    {{ form.subscription_date.label(class="form-label") }}
+    {{ form.subscription_date(class="form-control", type="date") }}
+    {% for e in form.subscription_date.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+  </div>
+
+  {{ form.submit(class="btn btn-primary w-100") }}
+  <a href="{{ url_for('dashboard.admin_dashboard') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}
+
+

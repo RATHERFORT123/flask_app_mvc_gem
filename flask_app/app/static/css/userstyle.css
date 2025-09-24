@@ -1,0 +1,490 @@
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF7; /* Light cream background */
+            color: #333;
+        }
+
+        /* New Navbar Styling */
+        .navbar-new-design {
+            background-color: #1A1A1A; /* Dark background from screenshot */
+            color: #E0E0E0; /* Light text color */
+            padding: 10px 20px;
+            border-bottom: 1px solid #333; /* Subtle border */
+        }
+
+        .navbar-new-design .navbar-brand img {
+            height: 30px; /* Adjust logo size for the new design */
+            margin-right: 8px;
+        }
+
+        .navbar-new-design .navbar-brand span {
+            font-weight: 600;
+            color: #E0E0E0; /* Light color for brand name */
+            font-size: 1.25rem;
+        }
+
+        .navbar-new-design .nav-link {
+            font-weight: 500;
+            color: #E0E0E0 !important; /* Light text for links */
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .navbar-new-design .nav-link:hover {
+            background-color: #333; /* Darker background on hover */
+            color: #fff !important;
+        }
+
+        .navbar-new-design .dropdown-menu {
+            background-color: #2A2A2A; /* Darker dropdown background */
+            border: 1px solid #444;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .navbar-new-design .dropdown-item {
+            color: #E0E0E0;
+            padding: 10px 15px;
+            border-radius: 4px;
+        }
+
+        .navbar-new-design .dropdown-item:hover {
+            background-color: #3A3A3A;
+            color: #fff;
+        }
+
+        .navbar-new-design .search-input-group {
+            background-color: #333; /* Dark background for search input */
+            border-radius: 8px;
+            padding: 6px 12px;
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+        }
+
+        .navbar-new-design .search-input-group input {
+            background-color: transparent;
+            border: none;
+            color: #E0E0E0;
+            outline: none;
+            padding: 0;
+            font-size: 0.9rem;
+            width: 120px; /* Fixed width for search input */
+        }
+
+        .navbar-new-design .search-input-group input::placeholder {
+            color: #888;
+        }
+
+        .navbar-new-design .search-input-group .shortcut-keys {
+            color: #888;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+
+        .navbar-new-design .btn-dark-outline {
+            border: 1px solid #555;
+            color: #E0E0E0;
+            background-color: transparent;
+            border-radius: 8px;
+            padding: 8px 18px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-new-design .btn-dark-outline:hover {
+            background-color: #333;
+            border-color: #E0E0E0;
+            color: #fff;
+        }
+
+        .navbar-new-design .btn-light-solid {
+            background-color: #F0F0F0; /* Light button from screenshot */
+            color: #1A1A1A;
+            border-radius: 8px;
+            padding: 8px 18px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-new-design .btn-light-solid:hover {
+            background-color: #fff;
+            color: #000;
+        }
+
+        /* Responsive adjustments for new navbar */
+        @media (max-width: 991.98px) {
+            .navbar-new-design {
+                padding: 10px 15px;
+            }
+            .navbar-new-design .navbar-collapse {
+                background-color: #1A1A1A;
+                border-top: 1px solid #333;
+                border-radius: 0 0 8px 8px;
+                margin: 0 -15px -10px;
+                padding: 10px 15px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }
+            .navbar-new-design .navbar-nav .nav-link {
+                padding: 10px 0;
+            }
+            .navbar-new-design .navbar-nav {
+                padding-bottom: 10px;
+            }
+            .navbar-new-design .search-input-group {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+        }
+
+        /* DataTables specific styling */
+        .dataTables_wrapper .dataTables_filter {
+            text-align: right;
+            margin-bottom: 1rem;
+        }
+        .dataTables_wrapper .dataTables_paginate {
+            text-align: right;
+            margin-top: 1rem;
+        }
+        .dataTables_wrapper .dataTables_length {
+            margin-bottom: 1rem;
+        }
+        .dataTables_wrapper .dataTables_info {
+            margin-bottom: 1rem;
+        }
+        table.dataTable {
+            width: 100% !important;
+            border-collapse: collapse;
+            border-radius: 8px; /* Rounded corners for the table */
+            overflow: hidden; /* Ensures rounded corners are visible */
+        }
+        table.dataTable th,
+        table.dataTable td {
+            padding: 12px 15px;
+            vertical-align: middle;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        table.dataTable th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+            text-align: left;
+        }
+        table.dataTable tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+        .dataTables_wrapper .dataTables_filter input {
+            border-radius: 8px;
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+        }
+        .dataTables_wrapper .dataTables_length select {
+            border-radius: 8px;
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+        }
+        .dataTables_wrapper .paginate_button {
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin: 0 5px;
+            border: 1px solid #e0e0e0;
+            background-color: #fff;
+            color: #333;
+            cursor: pointer;
+        }
+        .dataTables_wrapper .paginate_button.current,
+        .dataTables_wrapper .paginate_button.current:hover {
+            background-color: #385D26;
+            color: #fff !important;
+            border-color: #385D26;
+        }
+        .dataTables_wrapper .paginate_button:hover {
+            background-color: #e6f5e6;
+            color: #28a745 !important;
+            border-color: #28a745;
+        }
+        .dataTables_wrapper .paginate_button.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Login Form specific styles for modal */
+        .login-modal-content {
+            padding: 20px; /* Adjust padding for the login form inside modal */
+        }
+
+        .login-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .login-modal-header .logo-section {
+            display: flex;
+            align-items: center;
+        }
+
+        .login-modal-header .logo-section .login-logo-hash {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #3B82F6; /* Blue color for #DASHMIN */
+            margin-right: 2px; /* Small space between # and DASHMIN */
+        }
+
+        .login-modal-header .logo-section .login-logo-text {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .login-modal-header .login-sign-in-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #333;
+            margin: 0;
+        }
+
+        .login-form-control {
+            border-radius: 8px;
+            padding: 10px 12px;
+            border: 1px solid #E0E0E0;
+            font-size: 0.9rem;
+        }
+
+        .login-form-control:focus {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
+        }
+
+        .login-form-check-input {
+            border-radius: 6px;
+            border: 1px solid #E0E0E0;
+            margin-right: 8px; /* Space between checkbox and label */
+        }
+
+        .login-form-check-input:checked {
+            background-color: #3B82F6;
+            border-color: #3B82F6;
+        }
+
+        .login-btn-primary {
+            background-color: #3B82F6; /* Blue button */
+            border-color: #3B82F6;
+            border-radius: 8px;
+            padding: 10px 0;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .login-btn-primary:hover {
+            background-color: #2563EB; /* Darker blue on hover */
+            border-color: #2563EB;
+        }
+
+        .login-forgot-password-link,
+        .login-signup-link {
+            color: #3B82F6;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+
+        .login-forgot-password-link:hover,
+        .login-signup-link:hover {
+            color: #2563EB;
+            text-decoration: underline;
+        }
+
+        .login-text-muted-custom {
+            color: #6C757D;
+            font-size: 0.9rem;
+        }
+
+        /* Advanced Search Form Styling */
+        .advanced-search-container {
+            background-color: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+            margin: 20px 0; /* Removed auto to make it full width, added 20px top/bottom margin */
+            width: auto; /* Removed max-width */
+        }
+
+        .advanced-search-container h3 {
+            color: #3B82F6; /* Blue for the title */
+            font-weight: 600;
+            margin-bottom: 25px;
+        }
+
+        .advanced-search-container .nav-tabs .nav-link {
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: #6C757D;
+            font-weight: 500;
+            padding: 10px 15px;
+            transition: all 0.3s ease;
+        }
+
+        .advanced-search-container .nav-tabs .nav-link.active {
+            color: #3B82F6;
+            border-bottom-color: #3B82F6;
+            background-color: transparent;
+        }
+
+        .advanced-search-container .nav-tabs .nav-link:hover {
+            color: #3B82F6;
+            border-bottom-color: #3B82F6;
+        }
+
+        .advanced-search-container .tab-content {
+            padding-top: 20px;
+        }
+
+        .advanced-search-container .form-label {
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .advanced-search-container .form-control,
+        .advanced-search-container .form-select {
+            border-radius: 8px;
+            padding: 10px 15px;
+            border: 1px solid #E0E0E0;
+            font-size: 0.95rem;
+        }
+
+        .advanced-search-container .form-control:focus,
+        .advanced-search-container .form-select:focus {
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
+        }
+
+        .advanced-search-container .input-group-text {
+            background-color: #F8F9FA;
+            border: 1px solid #E0E0E0;
+            border-left: none;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .advanced-search-container .captcha-input-group img {
+            border-radius: 8px;
+            height: 38px; /* Adjust as needed */
+            margin-left: 10px;
+        }
+
+        .advanced-search-container .captcha-input-group .btn-refresh {
+            background-color: #F8F9FA;
+            border: 1px solid #E0E0E0;
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-left: 10px;
+            color: #555;
+            transition: background-color 0.2s ease;
+        }
+
+        .advanced-search-container .captcha-input-group .btn-refresh:hover {
+            background-color: #E6F5E6;
+        }
+
+        .advanced-search-container .btn-search {
+            background-color: #3B82F6;
+            border-color: #3B82F6;
+            color: #fff;
+            border-radius: 8px;
+            padding: 10px 25px;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+
+        .advanced-search-container .btn-search:hover {
+            background-color: #2563EB;
+            border-color: #2563EB;
+        }
+
+        .advanced-search-container .btn-reset {
+            background-color: #6C757D;
+            border-color: #6C757D;
+            color: #fff;
+            border-radius: 8px;
+            padding: 10px 25px;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+
+        .advanced-search-container .btn-reset:hover {
+            background-color: #5A6268;
+            border-color: #5A6268;
+        }
+
+        .advanced-search-container .disclaimer {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 20px;
+        }
+
+        /* New class for DataTables container to match form width */
+        .data-table-container {
+            background-color: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            padding: 30px; /* Adjusted padding to match form */
+            margin: 20px 0; /* Removed auto to make it full width, added 20px top/bottom margin */
+            width: auto; /* Removed max-width */
+        }
+
+        /* Page content styling */
+        .page-content {
+            display: none; /* Hidden by default */
+        }
+
+        .page-content.active {
+            display: block; /* Shown when active */
+        }
+
+        .placeholder-page {
+            background-color: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            padding: 50px;
+            margin: 20px 0;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .placeholder-page h2 {
+            color: #3B82F6;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .placeholder-page p {
+            font-size: 1.1rem;
+            color: #555;
+            max-width: 600px;
+        }
+
+        /* Loading spinner styles for LLM modal */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            border-radius: 12px; /* Match modal content border-radius */
+        }
