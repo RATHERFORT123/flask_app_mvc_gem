@@ -3,7 +3,7 @@ from .extensions import db, migrate, login_manager, csrf
 from .controllers.auth_controller import auth_bp
 from .controllers.dashboard_controller import dashboard_bp
 from .controllers.user_controller import user_bp  # if implemented user_controller
-
+import os
 from .models.user import User
 
 def create_app(config_object="config.DevConfig"):
@@ -27,16 +27,20 @@ def create_app(config_object="config.DevConfig"):
 
     with app.app_context():
         db.create_all()
-        if not User.query.filter_by(is_admin=True).first():
-            admin = User(
-                username="admin",
-                email="admin@example.com",
-                is_admin=True,
-                is_verified=True,
-            )
-            admin.set_password("admin123")
-            db.session.add(admin)
-            db.session.commit()
+        if not os.environ.get('FLASK_MIGRATE'):
+            try:
+                if not User.query.filter_by(is_admin=True).first():
+                    admin = User(
+                        username="admin",
+                        email="admin@example.com",
+                        is_admin=True,
+                        is_verified=True,
+                    )
+                    admin.set_password("admin123")
+                    db.session.add(admin)
+                    db.session.commit()
+            except Exception:
+                pass
 
     return app
 

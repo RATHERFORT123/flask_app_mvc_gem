@@ -158,7 +158,7 @@ def profile():
 @user_bp.route("/sellers")
 @login_required
 def sellers():
-    """Show current logged-in user's profile (read-only)"""
+    """Show current logged-in user's profile (read-only) chetan athore"""
     return render_template("user_seller_info.html", user=current_user)
 
 

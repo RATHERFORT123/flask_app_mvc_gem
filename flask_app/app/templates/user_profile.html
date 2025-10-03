@@ -45,4 +45,49 @@
 </table>
   </div>
 </div>
+
+
+<h2>My History Update Status Table
+</h2>
+<div class="card shadow-sm">
+  <div class="card-body">
+<table class="table">
+  <tr><th>Username</th><td>{{ user.username }}</td></tr>
+  <tr><th>Email</th><td>{{ user.email }}</td></tr>
+  <tr><th>Address</th><td>{{ user.address or "-" }}</td></tr>
+  <tr><th>Mobile Number</th><td>{{ user.number or "-" }}</td></tr>
+  <tr><th>Comment</th><td>{{ user.comment or "-" }}</td></tr>
+  <tr><th>Categories</th>
+    <td>
+      {% if user.category_names %}
+        {% for c in user.category_names.split(",") %}
+          <span class="badge bg-secondary">{{ c.strip() }}</span>
+        {% endfor %}
+      {% else %} -
+      {% endif %}
+    </td>
+  </tr>
+  <tr><th>Brands</th>
+    <td>
+      {% if user.brand_names %}
+        {% for b in user.brand_names.split(",") %}
+          <span class="badge bg-info">{{ b.strip() }}</span>
+        {% endfor %}
+      {% else %} -
+      {% endif %}
+    </td>
+  </tr>
+  <tr><th>Assigned Date Range</th>
+    <td>
+      {% if user.assigned_date_range_start and user.assigned_date_range_end %}
+        {{ user.assigned_date_range_start }} to {{ user.assigned_date_range_end }}
+      {% else %} -
+      {% endif %}
+    </td>
+  </tr>
+  <tr><th>Subscription Date</th><td>{{ user.subscription_date or "-" }}</td></tr>
+  <tr><th>Verified</th><td>{{ "Yes" if user.is_verified else "No" }}</td></tr>
+</table>
+  </div>
+</div>
 {% endblock %}

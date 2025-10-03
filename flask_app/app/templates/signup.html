@@ -38,40 +38,9 @@
   {{ form.number(class="form-control") }}
   {% for e in form.number.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
 </div>
-<div class="mb-3">
-  {{ form.category_names.label(class="form-label") }}
-  {{ form.category_names(class="form-control") }}
-  {% for e in form.category_names.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-</div>
-<div class="mb-3">
-  {{ form.brand_names.label(class="form-label") }}
-  {{ form.brand_names(class="form-control") }}
-  {% for e in form.brand_names.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-</div>
+
 {{ form.submit(class="btn btn-primary w-100") }}
 
-          <!-- {{ form.hidden_tag() }}
-          <div class="mb-3">
-            {{ form.username.label(class="form-label") }}
-            {{ form.username(class="form-control") }}
-            {% for e in form.username.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-          </div>
-          <div class="mb-3">
-            {{ form.email.label(class="form-label") }}
-            {{ form.email(class="form-control") }}
-            {% for e in form.email.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-          </div>
-          <div class="mb-3">
-            {{ form.password.label(class="form-label") }}
-            {{ form.password(class="form-control") }}
-            {% for e in form.password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-          </div>
-          <div class="mb-3">
-            {{ form.confirm.label(class="form-label") }}
-            {{ form.confirm(class="form-control") }}
-            {% for e in form.confirm.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-          </div>
-          {{ form.submit(class="btn btn-primary w-100") }} -->
         </form>
       </div>
     </div>

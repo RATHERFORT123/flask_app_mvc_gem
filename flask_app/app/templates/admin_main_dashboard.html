@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+
+<div class="card shadow-sm border-0 rounded-3 mb-4">
+    <div class="card-body">
+        <h1 class="h4 fw-bold">Welcome chetan, {{ current_user.username }}!</h1>
+        {% if current_user.is_verified %}
+          <p class="mb-0 text-success fw-semibold">Your account is verified. You can access all user features.</p>
+        {% else %}
+          <p class="mb-0 text-warning fw-semibold">Your account is not yet verified. Some features may be restricted.</p>
+        {% endif %}
+    </div>
+</div>
+<div class="row">
+  <div class="col-sm-2">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">USER MANAGE</h5>
+        <p class="card-text">USER</p>
+        <a href="#" class="btn btn-primary">USER MANAGE</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-2">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">USER ADD</h5>
+        <p class="card-text">USER</p>
+        <a href="#" class="btn btn-primary">USER ADD</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-2">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">BRAND ADD</h5>
+        <p class="card-text">BRAND</p>
+        <a href="#" class="btn btn-primary">BRAND ADD</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-2">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">BRAND MANAGE</h5>
+        <p class="card-text">BRAND</p>
+        <a href="#" class="btn btn-primary">BRAND MANAGE</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-2">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">BRAND SEARCH</h5>
+        <p class="card-text">BRAND</p>
+        <a href="#" class="btn btn-primary">BRAND SEARCH</a>
+      </div>
+    </div>
+  </div><div class="col-sm-2">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">CATEGORY </h5>
+        <p class="card-text">CATEGORY MANAGE</p>
+        <a href="#" class="btn btn-primary">CATEGORY</a>
+      </div>
+    </div>
+  </div>
+</div>
+  <div class="row">
+    <div class="col-sm-2">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">CATEGORY ADD</h5>
+        <p class="card-text">CATEGORY</p>
+        <a href="#" class="btn btn-primary">CATEGORY ADD</a>
+      </div>
+    </div>
+  </div><div class="col-sm-2">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">CONTRACT </h5>
+        <p class="card-text">CONTRACT MANAGE</p>
+        <a href="#" class="btn btn-primary">CONTRACT</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-2">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">CONTRACT ADD</h5>
+        <p class="card-text">CONTRACT</p>
+        <a href="#" class="btn btn-primary">CONTRACT ADD</a>
+      </div>
+    </div>
+  </div><div class="col-sm-2">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">SELLER MANAGE</h5>
+        <p class="card-text">SELLER</p>
+        <a href="#" class="btn btn-primary">SELLER MANAGE</a>
+      </div>
+    </div>
+  </div><div class="col-sm-2">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">SELLER ADD</h5>
+        <p class="card-text">SELLER</p>
+        <a href="#" class="btn btn-primary">SELLER ADD</a>
+      </div>
+    </div>
+  </div><div class="col-sm-2">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">ANALITICS </h5>
+        <p class="card-text">ANALITICS MANAGE</p>
+        <a href="#" class="btn btn-primary">ANALITICS</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock %}

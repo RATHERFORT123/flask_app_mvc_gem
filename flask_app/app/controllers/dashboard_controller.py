@@ -1,9 +1,163 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, abort, request
+# from flask import Blueprint, render_template, redirect, url_for, flash, abort, request
+# from flask_login import login_required, current_user
+# from ..forms.auth import UserForm
+# from ..repositories import user_repository
+# from ..extensions import db
+# from functools import wraps
+
+# dashboard_bp = Blueprint("dashboard", __name__)
+
+# def admin_required(f):
+#     @wraps(f)
+#     def decorated_function(*args, **kwargs):
+#         if not current_user.is_authenticated or not current_user.is_admin:
+#             abort(403)
+#         return f(*args, **kwargs)
+#     return decorated_function
+
+# @dashboard_bp.route("/dashboard")
+# @login_required
+# def user_dashboard():
+#     return render_template("user_dashboard.html")
+
+
+# @dashboard_bp.route("/")
+# @login_required
+# def root():
+#     return redirect(url_for("dashboard.user_dashboard"))
+
+
+# @dashboard_bp.route("/dashboard")
+# @login_required
+# @admin_required
+# def dashboard():
+#     print("chetan")
+#     return render_template("admin_main_dashboard.html")
+
+
+# @dashboard_bp.route("/admin")
+# @login_required
+# @admin_required
+# def admin_dashboard():
+#     q = request.args.get("q", "").strip().lower()
+#     users = user_repository.get_all()
+#     if q:
+#         users = [u for u in users if q in u.username.lower() or q in u.email.lower()]
+#     return render_template("admin_dashboard.html", users=users, q=q)
+
+# @dashboard_bp.route("/admin/users/create", methods=["GET", "POST"])
+# @login_required
+# @admin_required
+# def admin_user_create():
+#     form = UserForm()
+#     if form.validate_on_submit():
+#         user_repository.create_user(
+#             username=form.username.data,
+#             email=form.email.data,
+#             password=form.password.data or "changeme123",
+#             is_admin=form.is_admin.data,
+#             is_verified=form.is_verified.data,
+#             is_blocked=form.is_blocked.data,
+#             address=form.address.data,
+#             number=form.number.data,
+#             comment=form.comment.data,
+#             category_names=form.category_names.data,
+#             brand_names=form.brand_names.data,
+#             assigned_date_range_start=form.assigned_date_range_start.data,
+#             assigned_date_range_end=form.assigned_date_range_end.data,
+#             subscription_date=form.subscription_date.data
+#         )
+#         flash("User created.", "success")
+#         return redirect(url_for("dashboard.admin_dashboard"))
+#     return render_template("admin_user_form.html", form=form, action="Create")
+
+# @dashboard_bp.route("/admin/users/<int:user_id>/edit", methods=["GET", "POST"])
+# @login_required
+# @admin_required
+# def admin_user_edit(user_id):
+#     u = user_repository.get_by_id(user_id)
+#     if not u:
+#         abort(404)
+#     form = UserForm(obj=u)
+#     if request.method == "GET":
+#         form.category_names.data = u.category_names
+#         form.brand_names.data = u.brand_names
+#         form.assigned_date_range_start.data = u.assigned_date_range_start
+#         form.assigned_date_range_end.data = u.assigned_date_range_end
+#         form.subscription_date.data = u.subscription_date
+#     if form.validate_on_submit():
+#         user_repository.update_user(
+#             u,
+#             username=form.username.data,
+#             email=form.email.data,
+#             password=form.password.data or None,
+#             is_admin=form.is_admin.data,
+#             is_verified=form.is_verified.data,
+#             is_blocked=form.is_blocked.data,
+#             address=form.address.data,
+#             number=form.number.data,
+#             comment=form.comment.data,
+#             category_names=form.category_names.data,
+#             brand_names=form.brand_names.data,
+#             assigned_date_range_start=form.assigned_date_range_start.data,
+#             assigned_date_range_end=form.assigned_date_range_end.data,
+#             subscription_date=form.subscription_date.data
+#         )
+#         flash("User updated.", "success")
+#         return redirect(url_for("dashboard.admin_dashboard"))
+#     return render_template("admin_user_form.html", form=form, action="Update")
+
+# @dashboard_bp.route("/admin/users/<int:user_id>/delete", methods=["POST"])
+# @login_required
+# @admin_required
+# def admin_user_delete(user_id):
+#     u = user_repository.get_by_id(user_id)
+#     if not u:
+#         abort(404)
+#     if u.id == current_user.id:
+#         flash("You cannot delete your own admin account.", "warning")
+#         return redirect(url_for("dashboard.admin_dashboard"))
+#     user_repository.delete_user(u)
+#     flash("User deleted.", "success")
+#     return redirect(url_for("dashboard.admin_dashboard"))
+
+# @dashboard_bp.route("/admin/users/<int:user_id>/toggle-verify", methods=["POST"])
+# @login_required
+# @admin_required
+# def admin_user_toggle_verify(user_id):
+#     u = user_repository.get_by_id(user_id)
+#     if not u:
+#         abort(404)
+#     u.is_verified = not u.is_verified
+#     db.session.commit()
+#     flash("Verification status updated.", "success")
+#     return redirect(url_for("dashboard.admin_dashboard"))
+
+# @dashboard_bp.route("/admin/users/<int:user_id>/toggle-block", methods=["POST"])
+# @login_required
+# @admin_required
+# def admin_user_toggle_block(user_id):
+#     u = user_repository.get_by_id(user_id)
+#     if not u:
+#         abort(404)
+#     if u.id == current_user.id:
+#         flash("You cannot block/unblock your own admin account.", "warning")
+#         return redirect(url_for("dashboard.admin_dashboard"))
+#     u.is_blocked = not u.is_blocked
+#     db.session.commit()
+#     flash("User block status updated.", "success")
+#     return redirect(url_for("dashboard.admin_dashboard"))
+
+
+from flask import Blueprint, render_template, redirect, url_for, flash, abort, request, jsonify
 from flask_login import login_required, current_user
+from functools import wraps
 from ..forms.auth import UserForm
 from ..repositories import user_repository
 from ..extensions import db
-from functools import wraps
+from ..models.contract import Contract
+from ..models.seller import Seller
+import json
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
@@ -15,14 +169,25 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+
 @dashboard_bp.route("/dashboard")
 @login_required
 def user_dashboard():
     return render_template("user_dashboard.html")
+
+
 @dashboard_bp.route("/")
 @login_required
 def root():
     return redirect(url_for("dashboard.user_dashboard"))
+
+
+@dashboard_bp.route("/dashboard")
+@login_required
+@admin_required
+def dashboard():
+    return render_template("admin_main_dashboard.html")
+
 
 @dashboard_bp.route("/admin")
 @login_required
@@ -33,6 +198,7 @@ def admin_dashboard():
     if q:
         users = [u for u in users if q in u.username.lower() or q in u.email.lower()]
     return render_template("admin_dashboard.html", users=users, q=q)
+
 
 @dashboard_bp.route("/admin/users/create", methods=["GET", "POST"])
 @login_required
@@ -54,11 +220,15 @@ def admin_user_create():
             brand_names=form.brand_names.data,
             assigned_date_range_start=form.assigned_date_range_start.data,
             assigned_date_range_end=form.assigned_date_range_end.data,
-            subscription_date=form.subscription_date.data
+            subscription_date=form.subscription_date.data,
+            amount=form.amount.data,
+            payment_status=form.payment_status.data,
+            subscription_plan=form.subscription_plan.data
         )
         flash("User created.", "success")
         return redirect(url_for("dashboard.admin_dashboard"))
     return render_template("admin_user_form.html", form=form, action="Create")
+
 
 @dashboard_bp.route("/admin/users/<int:user_id>/edit", methods=["GET", "POST"])
 @login_required
@@ -74,6 +244,9 @@ def admin_user_edit(user_id):
         form.assigned_date_range_start.data = u.assigned_date_range_start
         form.assigned_date_range_end.data = u.assigned_date_range_end
         form.subscription_date.data = u.subscription_date
+        form.amount.data = u.amount
+        form.payment_status.data = u.payment_status
+        form.subscription_plan.data = u.subscription_plan
     if form.validate_on_submit():
         user_repository.update_user(
             u,
@@ -90,11 +263,15 @@ def admin_user_edit(user_id):
             brand_names=form.brand_names.data,
             assigned_date_range_start=form.assigned_date_range_start.data,
             assigned_date_range_end=form.assigned_date_range_end.data,
-            subscription_date=form.subscription_date.data
+            subscription_date=form.subscription_date.data,
+            amount=form.amount.data,
+            payment_status=form.payment_status.data,
+            subscription_plan=form.subscription_plan.data
         )
         flash("User updated.", "success")
         return redirect(url_for("dashboard.admin_dashboard"))
     return render_template("admin_user_form.html", form=form, action="Update")
+
 
 @dashboard_bp.route("/admin/users/<int:user_id>/delete", methods=["POST"])
 @login_required
@@ -110,6 +287,7 @@ def admin_user_delete(user_id):
     flash("User deleted.", "success")
     return redirect(url_for("dashboard.admin_dashboard"))
 
+
 @dashboard_bp.route("/admin/users/<int:user_id>/toggle-verify", methods=["POST"])
 @login_required
 @admin_required
@@ -121,6 +299,7 @@ def admin_user_toggle_verify(user_id):
     db.session.commit()
     flash("Verification status updated.", "success")
     return redirect(url_for("dashboard.admin_dashboard"))
+
 
 @dashboard_bp.route("/admin/users/<int:user_id>/toggle-block", methods=["POST"])
 @login_required
@@ -136,6 +315,79 @@ def admin_user_toggle_block(user_id):
     db.session.commit()
     flash("User block status updated.", "success")
     return redirect(url_for("dashboard.admin_dashboard"))
+
+
+
+# @dashboard_bp.route("/admin/search/brands")
+# @login_required
+# @admin_required
+# def search_brands():
+#     contracts = db.session.query(Contract.items).distinct().all()
+
+#     brands_set = set()
+#     for (items_json,) in contracts:  # items_json is already a list
+#         try:
+#             if not isinstance(items_json, list):
+#                 continue
+#             for item in items_json:
+#                 brand = item.get("brand")
+#                 if brand and brand != "NaN":
+#                     brands_set.add(str(brand).strip())
+#         except Exception:
+#             continue
+
+#     brands = sorted(brands_set)
+#     return jsonify(brands)
+from flask import request
+
+@dashboard_bp.route("/admin/search/brands")
+@login_required
+@admin_required
+def search_brands():
+    term = request.args.get("term", "").lower()
+    contracts = db.session.query(Contract.items).distinct().all()
+    brands_set = set()
+    for (items_json,) in contracts:
+        if isinstance(items_json, list):
+            for item in items_json:
+                brand = item.get("brand")
+                if brand and brand != "NaN":
+                    brands_set.add(str(brand).strip())
+    # Perform case-insensitive filtering
+    if term:
+        brands = [b for b in brands_set if term in b.lower()]
+    else:
+        brands = list(brands_set)
+    return jsonify(sorted(brands))
+
+
+
+# Category search fetch
+# @dashboard_bp.route("/admin/search/categories")
+# @login_required
+# @admin_required
+# def search_categories():
+#     categories_raw = db.session.query(Seller.category_name).distinct().all()
+#     categories = sorted([c[0] for c in categories_raw if c[0]])
+#     return jsonify(categories)
+
+from flask import request
+
+@dashboard_bp.route("/admin/search/categories")
+@login_required
+@admin_required
+def search_categories():
+    term = request.args.get("term", "").strip().lower()
+    categories_raw = db.session.query(Seller.category_name).distinct().all()
+    all_categories = [c[0] for c in categories_raw if c[0]]
+    if term:
+        # Perform server-side filtering, case-insensitive
+        categories = [cat for cat in all_categories if term in cat.lower()]
+    else:
+        categories = all_categories
+    categories = sorted(categories)
+    return jsonify(categories)
+
 
 
 from flask import Blueprint, render_template, redirect, url_for, flash, request, abort

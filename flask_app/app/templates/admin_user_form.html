@@ -2,7 +2,7 @@
 {% block title %}{{ action }} User{% endblock %}
 
 {% block content %}
-<h2>{{ action }} User</h2>
+<!-- <h2>{{ action }} User</h2>
 
 <form method="POST">
   {{ form.hidden_tag() }}
@@ -77,7 +77,200 @@
 
   {{ form.submit(class="btn btn-primary w-100") }}
   <a href="{{ url_for('dashboard.admin_dashboard') }}" class="btn btn-secondary">Cancel</a>
-</form>
+</form> -->
+
+
+<div class="container">
+  <h1>{{ action }} User</h1>
+  <form method="POST">
+    {{ form.hidden_tag() }}
+
+    <div class="mb-3">
+      {{ form.username.label(class="form-label") }}
+      {{ form.username(class="form-control") }}
+    </div>
+    <div class="mb-3">
+      {{ form.email.label(class="form-label") }}
+      {{ form.email(class="form-control") }}
+    </div>
+    <div class="mb-3">
+      {{ form.password.label(class="form-label") }}
+      {{ form.password(class="form-control") }}
+      <small class="form-text text-muted">Leave blank to keep current password</small>
+    </div>
+    <div class="form-check mb-3">
+      {{ form.is_admin(class="form-check-input") }}
+      {{ form.is_admin.label(class="form-check-label") }}
+    </div>
+    <div class="form-check mb-3">
+      {{ form.is_verified(class="form-check-input") }}
+      {{ form.is_verified.label(class="form-check-label") }}
+    </div>
+    <div class="form-check mb-3">
+      {{ form.is_blocked(class="form-check-input") }}
+      {{ form.is_blocked.label(class="form-check-label") }}
+    </div>
+    <div class="mb-3">
+      {{ form.address.label(class="form-label") }}
+      {{ form.address(class="form-control") }}
+    </div>
+    <div class="mb-3">
+      {{ form.number.label(class="form-label") }}
+      {{ form.number(class="form-control") }}
+    </div>
+    <div class="mb-3">
+      {{ form.comment.label(class="form-label") }}
+      {{ form.comment(class="form-control") }}
+    </div>
+
+
+    <!-- Conditionally show brand_names multi-select if present in form -->
+    {% if form.brand_names is defined %}
+    <div class="mb-3">
+      <label for="brand_search">Brands</label>
+      <select id="brand_search" multiple style="width: 100%;"></select>
+      {{ form.brand_names(class="form-control d-none") }}
+    </div>
+    {% endif %}
+
+    <!-- Conditionally show category_names multi-select if present in form -->
+    {% if form.category_names is defined %}
+    <div class="mb-3">
+      <label for="category_search">Categories</label>
+      <select id="category_search" multiple style="width: 100%;"></select>
+      {{ form.category_names(class="form-control d-none") }}
+    </div>
+    {% endif %}
+
+    <div class="mb-3">
+      {{ form.assigned_date_range_start.label(class="form-label") }}
+      {{ form.assigned_date_range_start(class="form-control") }}
+    </div>
+    <div class="mb-3">
+      {{ form.assigned_date_range_end.label(class="form-label") }}
+      {{ form.assigned_date_range_end(class="form-control") }}
+    </div>
+    <div class="mb-3">
+      {{ form.subscription_date.label(class="form-label") }}
+      {{ form.subscription_date(class="form-control") }}
+    </div>
+    <div class="mb-3">
+      {{ form.amount.label(class="form-label") }}
+      {{ form.amount(class="form-control") }}
+    </div>
+    <div class="mb-3">
+      {{ form.payment_status.label(class="form-label") }}
+      {{ form.payment_status(class="form-control") }}
+    </div>
+    <div class="mb-3">
+      {{ form.subscription_plan.label(class="form-label") }}
+      {{ form.subscription_plan(class="form-control") }}
+    </div>
+
+    <button type="submit" class="btn btn-primary">{{ action }}</button>
+    <a href="{{ url_for('dashboard.admin_dashboard') }}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+
+
+
+
+
+
+
+<!-- <div class="container">
+    <h1>{{ action }} Form</h1>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        Common fields for all forms 
+        <div class="mb-3">
+          {{ form.username.label(class="form-label") if form.username else '' }}
+          {{ form.username(class="form-control") if form.username else '' }}
+          {% for e in form.username.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+        </div>
+
+      
+
+        {% if form.email is defined %}
+        <div class="mb-3">
+          {{ form.email.label(class="form-label") }}
+          {{ form.email(class="form-control") }}
+          {% for e in form.email.errors %} <div class="text-danger small">{{ e }}</div> {% endfor %}
+        </div>
+        {% endif %}
+
+        <button type="submit" class="btn btn-primary">{{ action }}</button>
+    </form>
+</div> -->
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<script>
+  $(document).ready(function () {
+    {% if form.brand_names is defined %}
+    $('#brand_search').select2({
+      placeholder: 'Search and select brands',
+      ajax: {
+        url: "{{ url_for('dashboard.search_brands') }}",
+        dataType: 'json',
+        processResults: function (data) {
+          return { results: data.map(function (item) { return { id: item, text: item }; }) };
+        }
+      }
+    });
+
+    var initialBrands = "{{ form.brand_names.data or '' }}".split(',').map(function (i) { return i.trim(); }).filter(Boolean);
+    $('#brand_search').val(initialBrands).trigger('change');
+
+    $('#brand_search').on('change', function () {
+      $('#{{ form.brand_names.id }}').val($(this).val() ? $(this).val().join(',') : '');
+    });
+    {% endif %}
+
+    {% if form.category_names is defined %}
+    $('#category_search').select2({
+      placeholder: 'Search and select categories',
+      ajax: {
+        url: "{{ url_for('dashboard.search_categories') }}",
+        dataType: 'json',
+        processResults: function (data) {
+          return { results: data.map(function (item) { return { id: item, text: item }; }) };
+        }
+      }
+    });
+
+    var initialCategories = "{{ form.category_names.data or '' }}".split(',').map(function (i) { return i.trim(); }).filter(Boolean);
+    $('#category_search').val(initialCategories).trigger('change');
+
+    $('#category_search').on('change', function () {
+      $('#{{ form.category_names.id }}').val($(this).val() ? $(this).val().join(',') : '');
+    });
+    {% endif %}
+  });
+
+
+
+  var initialBrands = "{{ form.brand_names.data or '' }}".split(',').map(x => x.trim()).filter(Boolean);
+  initialBrands.forEach(function (b) {
+    if ($('#brand_search').find("option[value='" + b + "']").length === 0) {
+      var newOption = new Option(b, b, true, true);
+      $('#brand_search').append(newOption).trigger('change');
+    }
+  });
+  $('#brand_search').val(initialBrands).trigger('change');
+
+  var initialCategories = "{{ form.category_names.data or '' }}".split(',').map(x => x.trim()).filter(Boolean);
+  initialCategories.forEach(function (c) {
+    if ($('#category_search').find("option[value='" + c + "']").length === 0) {
+      var newOption = new Option(c, c, true, true);
+      $('#category_search').append(newOption).trigger('change');
+    }
+  });
+  $('#category_search').val(initialCategories).trigger('change');
+
+</script>
+
 {% endblock %}
-
-
