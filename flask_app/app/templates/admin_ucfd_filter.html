@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Unique Contract/Seller Data</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+</head>
+<body class="bg-light p-3">
+    <div class="container">
+        <h2 class="mb-3 fw-bold">Unique Contract Field Data</h2>
+        <!-- <form method="post">
+           
+            <button type="submit" name="fetch" value="1" class="btn btn-primary mb-2">Fetch Unique Data</button>
+        </form> -->
+        <!-- <form method="post">
+            <button type="submit" name="fetch" value="1" class="btn btn-primary mb-2">Fetch Unique Data</button>
+        </form> -->
+      
+<form method="get" action="{{ url_for('admin.ucfd_view') }}">
+  <input type="hidden" name="fetch" value="1">
+  <button type="submit" class="btn btn-primary mb-2">Fetch Unique Data</button>
+</form>
+
+
+
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Status</th>
+                        <th>Organization Type</th>
+                        <th>Ministry</th>
+                        <th>Department</th>
+                        <th>Organization Name</th>
+                        <th>Office Zone</th>
+                        <th>Location</th>
+                        <th>Buyer Designation</th>
+                        <th>Buying Mode</th>
+                        <th>Bid Number</th>
+                        <th>Contract Date</th>
+                        <th>Total</th>
+                        <th>Service</th>
+                        <th>Product</th>
+                        <th>Brand</th>
+                        <th>Model</th>
+                        <th>HSN Code</th>
+                        <th>Ordered Quantity</th>
+                        <th>Price</th>
+                        <th>Generated Date</th>
+                        <th>Category Name</th>
+                        <th>Seller ID</th>
+                        <th>Company Name</th>
+                        <th>Contact No</th>
+                        <th>Email</th>
+                        <th>Address</th>
+                        <th>MSME Reg No</th>
+                        <th>GSTIN</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for row in ucfd %}
+                    <tr>
+                        <td>{{ row.id }}</td>
+                        <td>{{ row.status or '' }}</td>
+                        <td>{{ row.organization_type or '' }}</td>
+                        <td>{{ row.ministry or '' }}</td>
+                        <td>{{ row.department or '' }}</td>
+                        <td>{{ row.organization_name or '' }}</td>
+                        <td>{{ row.office_zone or '' }}</td>
+                        <td>{{ row.location or '' }}</td>
+                        <td>{{ row.buyer_designation or '' }}</td>
+                        <td>{{ row.buying_mode or '' }}</td>
+                        <td>{{ row.bid_number or '' }}</td>
+                        <td>{{ row.contract_date or '' }}</td>
+                        <td>{{ row.total or '' }}</td>
+                        <td>{{ row.service or '' }}</td>
+                        <td>{{ row.product or '' }}</td>
+                        <td>{{ row.brand or '' }}</td>
+                        <td>{{ row.model or '' }}</td>
+                        <td>{{ row.hsn_code or '' }}</td>
+                        <td>{{ row.ordered_quantity or '' }}</td>
+                        <td>{{ row.price or '' }}</td>
+                        <td>{{ row.generated_date or '' }}</td>
+                        <td>{{ row.category_name or '' }}</td>
+                        <td>{{ row.seller_id or '' }}</td>
+                        <td>{{ row.company_name or '' }}</td>
+                        <td>{{ row.contact_no or '' }}</td>
+                        <td>{{ row.email or '' }}</td>
+                        <td>{{ row.address or '' }}</td>
+                        <td>{{ row.msme_reg_no or '' }}</td>
+                        <td>{{ row.gstin or '' }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if pagination %}
+        <nav>
+          <ul class="pagination">
+            {% if pagination.has_prev %}
+              <li class="page-item"><a class="page-link" href="?page={{ pagination.prev_num }}">Previous</a></li>
+            {% endif %}
+            <li class="page-item disabled"><span class="page-link">Page {{ pagination.page }} of {{ pagination.pages }}</span></li>
+            {% if pagination.has_next %}
+              <li class="page-item"><a class="page-link" href="?page={{ pagination.next_num }}">Next</a></li>
+            {% endif %}
+          </ul>
+        </nav>
+        {% endif %}
+    </div>
+</body>
+</html>

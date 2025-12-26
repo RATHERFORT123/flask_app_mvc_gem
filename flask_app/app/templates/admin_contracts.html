@@ -9,6 +9,9 @@
     Organization Type: <input type="text" name="organization_type" value="{{ filters.get('organization_type', '') }}">
     Ministry: <input type="text" name="ministry" value="{{ filters.get('ministry', '') }}">
     Contract Date: <input type="date" name="contract_date" value="{{ filters.get('contract_date', '') }}">
+    status: <input type="text" name="status" value="{{ filters.get('status', '') }}">
+    Department: <input type="text" name="department" value="{{ filters.get('department', '') }}">
+    office_zone: <input type="text" name="office_zone" value="{{ filters.get('office_zone', '') }}">
     <button type="submit">Filter</button>
     <a href="{{ url_for('dashboard.manage_contracts') }}">Clear</a>
   </form>

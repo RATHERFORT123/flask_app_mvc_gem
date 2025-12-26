@@ -177,33 +177,6 @@
 
 
 
-
-<!-- <div class="container">
-    <h1>{{ action }} Form</h1>
-    <form method="POST">
-        {{ form.hidden_tag() }}
-
-        Common fields for all forms 
-        <div class="mb-3">
-          {{ form.username.label(class="form-label") if form.username else '' }}
-          {{ form.username(class="form-control") if form.username else '' }}
-          {% for e in form.username.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-        </div>
-
-      
-
-        {% if form.email is defined %}
-        <div class="mb-3">
-          {{ form.email.label(class="form-label") }}
-          {{ form.email(class="form-control") }}
-          {% for e in form.email.errors %} <div class="text-danger small">{{ e }}</div> {% endfor %}
-        </div>
-        {% endif %}
-
-        <button type="submit" class="btn btn-primary">{{ action }}</button>
-    </form>
-</div> -->
-
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />

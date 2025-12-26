@@ -24,3 +24,11 @@ flask db upgrade
 
 ## Structure
 See the `flask_app/` tree in your request.
+
+
+
+<!-- PS C:\Users\Chetan\Downloads\flask_app_mvc> cd .\flask_app\
+PS C:\Users\Chetan\Downloads\flask_app_mvc\flask_app> .\venv\Scripts\Activate.ps1
+>> 
+(venv) PS C:\Users\Chetan\Downloads\flask_app_mvc\flask_app> flask run --debug
+ * Debug mode: on -->

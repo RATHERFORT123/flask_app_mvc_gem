@@ -21,7 +21,7 @@ def parse_value(value, target_type=str):
             return None
     return value
 
-def get_sellers_filtered_paginated(filters, page=1, per_page=50):
+def get_sellers_filtered_paginated(filters, page=1, per_page=10):
     query = Seller.query
     for field in ['contract_no', 'category_name', 'seller_id', 'company_name', 'contact_no', 'email', 'msme_reg_no', 'gstin']:
         val = filters.get(field)

@@ -1,351 +1,464 @@
+<!-- user_contract_info.html -->
+
+
+
 {% extends "base.html" %}
-{% block title %}Sign up{% endblock %}
+{% block title %}USER CONTRACTS{% endblock %}
 {% block content %}
+<style>
+    .box {
+        border-radius: 12px;
+        box-shadow: 0 2px 12px #e9ecef;
+    }
 
-<form method="get" action="{{ url_for('user.user_contracts') }}">
-    <label>Category:</label>
-    <select name="category_name" multiple>
-      {% for cat in user_categories %}
-        <option value="{{ cat }}" selected>{{ cat }}</option>
-      {% endfor %}
-    </select>
+    .box-header {
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
 
-    <label>Brand:</label>
-    <select name="brand" multiple>
-      {% for brand in user_brands %}
-        <option value="{{ brand }}" selected>{{ brand }}</option>
-      {% endfor %}
-    </select>
+    .filter-label {
+        font-size: .94rem;
+        font-weight: 600;
+        margin-bottom: 2px;
+    }
 
-    <label>Contract Date:</label>
-    <input type="date" name="contract_date" min="{{ assigned_start_date }}" max="{{ assigned_end_date }}" />
-
-    <button type="submit">Filter</button>
-</form>
-
-<table>
-<thead><tr><th>Contract ID</th><th>Status</th><th>Ministry</th><th>Date</th></tr></thead>
-<tbody>
-    {% for contract in contracts %}
-    <tr>
-        <td>{{ contract.contract_id }}</td>
-        <td>{{ contract.status }}</td>
-        <td>{{ contract.ministry }}</td>
-        <td>{{ contract.contract_date.strftime('%Y-%m-%d') if contract.contract_date else '' }}</td>
-    </tr>
-    {% endfor %}
-</tbody>
-</table>
-
-{% if pagination.has_prev %}
-  <a href="{{ url_for('user.user_contracts', page=pagination.prev_num) }}">Previous</a>
-{% endif %}
-{% if pagination.has_next %}
-  <a href="{{ url_for('user.user_contracts', page=pagination.next_num) }}">Next</a>
-{% endif %}
+    .pagination {
+        margin-top: 16px;
+    }
 
 
+    .select2-container .select2-selection--single {
+        height: 34px !important;
+    }
 
-<!-- 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OEM Analytics Dashboards</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        body {
-            background-color: #f0f2f5;
-        }
-        .container-fluid {
-            padding: 20px 40px;
-        }
-        .card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .card-header {
-            background-color: #fff;
-            border-bottom: 1px solid #dee2e6;
-            padding: 1.5rem;
-        }
-        .table th, .table td {
-            vertical-align: middle;
-        }
-        .table thead th {
-            font-weight: 500;
-        }
-        .table tbody tr:hover {
-            background-color: #f8f9fa;
-        }
-        .btn-link {
-            text-decoration: none;
-        }
-        .form-select, .form-control {
-            border-radius: 8px;
-        }
-        .pagination .page-item.active .page-link {
-            background-color: #007bff;
-            border-color: #007bff;
-        }
-        .pagination .page-link {
-            color: #007bff;
-        }
-    </style>
-</head>
-<body>
+    .select2-container--default .select2-selection--single {
+        border: 1px solid #ccc !important;
+        border-radius: 0px !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 34px !important;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 34px !important;
+    }
+</style>
+<div class="container">
+    <h1 class="fw-bold mb-1">Contract Management</h1>
+    <div class="mb-3 text-muted">Comprehensive contract oversight and analysis</div>
+
+    <form class="box p-4 mb-4 bg-white" method="get">
+        <div class="box-header mb-3"><span class="me-2">🔎</span>Search & Filter Contracts</div>
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="filter-label">Search</label>
+                <input type="text" class="form-control" name="search" value="{{ filters_applied.get('search', '') }}"
+                    placeholder="Contract ID, Buyer, Seller or Product">
+            </div>
+            <div class="col-md-2">
+                <label class="filter-label">From</label>
+                <input type="date" class="form-control" name="date_from"
+                    value="{{ filters_applied.get('date_from','') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="filter-label">To</label>
+                <input type="date" class="form-control" name="date_to" value="{{ filters_applied.get('date_to','') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="filter-label">Status</label>
+                <select class="form-select" name="status">
+                    <option value="">All Statuses</option>
+                    {% for status in [
+                    "Fullfillment in Progress",
+                    "Order Completed",
+                    "Order Accepted",
+                    "Order Paid",
+                    "Order Cancelled",
+                    "Waiting for Seller Confirmation",
+                    "Waiting for Seller Payment",
+                    "Cancellation Requested by Buyer",
+                    "Waiting For Payment Confirmation",
+                    "OrderPlaced",
+                    "WaitingForBuyerAction"
+                    ] %}
+                    <option value="{{status}}" {% if filters_applied.get('status','')==status %}selected{% endif %}>
+                        {{status.title()}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="filter-label">Buying_mode</label>
+                <select class="form-select" name="buying_mode">
+                    <option value="">All Types</option>
+                    {% for t in ['Bid/RA', 'Direct'] %}
+                    <option value="{{t}}" {% if filters_applied.get('type','')==t %}selected{% endif %}>{{t.title()}}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="filter-label">Value Range</label>
+                <div class="input-group">
+                    <input type="number" class="form-control" name="min_total" placeholder="Min"
+                        value="{{ filters_applied.get('min_total','') }}">
+                    <input type="number" class="form-control" name="max_total" placeholder="Max"
+                        value="{{ filters_applied.get('max_total','') }}">
+                </div>
+            </div>
+
+            <div class="col-md-2">
+                <label>Ministry</label>
+                <select class="form-control select2" id="ministry" name="ministry">
+                    <option value="">--Select--</option>
+                    <option value=""></option>
+                    <option value="">All Types</option>
+                    {% for t in [
+                    "Autonomous Body",
+                    "Central Government",
+                    "Central PSU",
+                    "Comptroller and Auditor General (CAG) of India",
+                    "Election Commission of India",
+                    "GOA",
+                    "Indian Atomic Industiral Forum (IAIF)",
+                    "Insurance Regulatory and Development Authority (IRDA)",
+                    "LADAKH",
+                    "Law Commission of India",
+                    "Lok Sabha Secretariat",
+                    "MIZORAM",
+                    "Ministry of AYUSH",
+                    "Ministry of Agriculture and Farmers Welfare",
+                    "Ministry of Chemicals and Fertilizers",
+                    "Ministry of Civil Aviation",
+                    "Ministry of Coal",
+                    "Ministry of Commerce and Industry",
+                    "Ministry of Communications",
+                    "Ministry of Consumer Affairs Food and Public Distribution",
+                    "Ministry of Corporate Affairs",
+                    "Ministry of Culture",
+                    "Ministry of Development of North Eastern Region",
+                    "Ministry of Drinking Water and Sanitation",
+                    "Ministry of Earth Sciences",
+                    "Ministry of Education",
+                    "Ministry of Electronics and Information Technology",
+                    "Ministry of Environment Forest and Climate Change",
+                    "Ministry of External Affairs",
+                    "Ministry of Finance",
+                    "Ministry of Food Processing Industries",
+                    "Ministry of Health and Family Welfare",
+                    "Ministry of Heavy Industries and Public Enterprises",
+                    "Ministry of Housing & Urban Affairs (MoHUA)",
+                    "Ministry of Housing and Urban Poverty Alleviation",
+                    "Ministry of Human Resource Development",
+                    "Ministry of Information and Broadcasting",
+                    "Ministry of Labour and Employment",
+                    "Ministry of Law and Justice",
+                    "Ministry of Micro Small and Medium Enterprises",
+                    "Ministry of Mines",
+                    "Ministry of Minority Affairs",
+                    "Ministry of New and Renewable Energy",
+                    "Ministry of Panchayati Raj",
+                    "Ministry of Parliamentary Affairs",
+                    "Ministry of Personnel Public Grievances and Pensions",
+                    "Ministry of Petroleum and Natural Gas",
+                    "Ministry of Ports, Shipping and Waterways",
+                    "Ministry of Power",
+                    "Ministry of Railways",
+                    "Ministry of Road Transports and highways",
+                    "Ministry of Rural Development ",
+                    "Ministry of Science and Technology",
+                    "Ministry of Skill Development and Entrepreneurship",
+                    "Ministry of Social Justice and Empowerment",
+                    "Ministry of Statistics and Programme Implementation",
+                    "Ministry of Steel",
+                    "Ministry of Textiles",
+                    "Ministry of Tourism",
+                    "Ministry of Tribal Affairs",
+                    "Ministry of Urban Development",
+                    "Ministry of Water Resources River Development and Ganga Rejuvenation",
+                    "Ministry of Women and Child Development",
+                    "Ministry of Youth Affairs and Sports",
+                    "NITI Aayog - National Institution for Transforming India",
+                    "National Commission for Scheduled Tribes (NCST)",
+                    "National Mission for Clean Ganga (NMCG), New Delhi",
+                    "National Rural Livelihoods Mission (NRLM) - Aajeevika",
+                    "Office of the Principal Scientific Adviser",
+                    "Organistion Incomplete",
+                    "President of India",
+                    "Primary User",
+                    "Rajya Sabha Secretariat",
+                    "SIKKIM",
+                    "Seventh Central Pay Commission, New Delhi",
+                    "Staff Selection Commision",
+                    "Union Public Service Commission (UPSC)",
+                    "Vice President of India"
+                    ] %}
+                    <option value="{{t}}" {% if filters_applied.get('ministry','')==t %}selected{% endif %}>
+                        {{t.title()}}
+                    </option>
+                    {% endfor %}
 
 
+                </select>
+            </div>
 
-<div class="container-fluid py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="col-md-2">
+                <label class="filter-label invisible">...</label>
+                <button type="submit" class="btn btn-primary w-100">Search</button>
+            </div>
+            <div class="col-md-2 text-end">
+                <label class="filter-label invisible">...</label>
+                <a href="{{ url_for('user.user_contracts') }}" class="btn btn-light w-100">Clear All</a>
+            </div>
+        </div>
+    </form>
+
+    <div class="d-flex justify-content-between align-items-center mb-2">
         <div>
-            <h2 class="mb-1">Search & Filter Contracts</h2>
+            <span class="fs-5 fw-bold">📄 Contracts Overview ({{pagination.total}})</span>
         </div>
-        <div class="d-flex align-items-center">
-            <div class="input-group input-group-sm me-2">
-                <input type="text" class="form-control" placeholder="Search by Contract ID, Buyer, Seller or Product" aria-label="Search">
-                <span class="input-group-text"><i class="fas fa-search"></i></span>
-            </div>
-            <div class="input-group input-group-sm">
-                <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
-                <input type="text" class="form-control" placeholder="dd/mm/yyyy" aria-label="Date From">
-                <span class="input-group-text">to</span>
-                <input type="text" class="form-control" placeholder="dd/mm/yyyy" aria-label="Date To">
-                <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
-            </div>
-        </div>
-    </div>
-    
-    <div class="card mb-4">
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label for="status" class="form-label text-muted small">Status</label>
-                    <select class="form-select form-select-sm" id="status">
-                        <option selected>All Statuses</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="type" class="form-label text-muted small">Type</label>
-                    <select class="form-select form-select-sm" id="type">
-                        <option selected>All Types</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="valueRange" class="form-label text-muted small">Value Range</label>
-                    <div class="input-group input-group-sm">
-                        <input type="text" class="form-control" placeholder="Min">
-                        <span class="input-group-text">-</span>
-                        <input type="text" class="form-control" placeholder="Max">
-                    </div>
-                </div>
-            </div>
-            <div class="row g-3 mt-2">
-                <div class="col-md-3">
-                    <label for="sellingAs" class="form-label text-muted small">Selling As</label>
-                    <select class="form-select form-select-sm" id="sellingAs">
-                        <option selected>Select</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="category" class="form-label text-muted small">Category</label>
-                    <select class="form-select form-select-sm" id="category">
-                        <option selected>Select Category</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="quadrant" class="form-label text-muted small">Quadrant</label>
-                    <select class="form-select form-select-sm" id="quadrant">
-                        <option selected>Select Quadrant</option>
-                    </select>
-                </div>
-                <div class="col-md-3 d-flex align-items-end justify-content-end">
-                    <a href="#" class="btn btn-link text-decoration-none text-muted">Clear All Filters</a>
-                </div>
-            </div>
+        <div>
+            <a href="?export=excel" class="btn btn-success btn-sm">Export Excel</a>
+            <a href="?export=pdf" class="btn btn-danger btn-sm ms-2">Export PDF</a>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="card-title mb-0">Contracts Overview <span class="text-muted">(2204)</span></h5>
-                <div class="d-flex align-items-center">
-                    <span class="text-muted me-2 small">Show</span>
-                    <select class="form-select form-select-sm w-auto me-2">
-                        <option>10</option>
-                        <option>25</option>
-                        <option>50</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="table-responsive">
-                <table class="table table-striped table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>Contract #</th>
-                            <th>Date</th>
-                            <th>Brand</th>
-                            <th>Status</th>
-                            <th>Type</th>
-                            <th>Bid #</th>
-                            <th>Value</th>
-                            <th>Selling As</th>
-                            <th>Details</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><i class="fas fa-caret-down text-muted"></i></td>
-                            <td><a href="#" class="btn-link">GEMC-511687764403986</a></td>
-                            <td>01 Mar 2025, 09:37 AM</td>
-                            <td>ProDot</td>
-                            <td>Order Completed</td>
-                            <td>Direct</td>
-                            <td>-</td>
-                            <td>₹48,491.1</td>
-                            <td>OEM verified Reseller</td>
-                            <td><a href="#" class="btn-link">View</a></td>
-                        </tr>
-                        <tr>
-                            <td><i class="fas fa-caret-down text-muted"></i></td>
-                            <td><a href="#" class="btn-link">GEMC-51168779617070</a></td>
-                            <td>01 Mar 2025, 09:38 AM</td>
-                            <td>ProDot</td>
-                            <td>Order Completed</td>
-                            <td>Direct</td>
-                            <td>-</td>
-                            <td>₹48,091.1</td>
-                            <td>OEM verified Reseller</td>
-                            <td><a href="#" class="btn-link">View</a></td>
-                        </tr>
-                        <tr>
-                            <td><i class="fas fa-caret-down text-muted"></i></td>
-                            <td><a href="#" class="btn-link">GEMC-511687783220571</a></td>
-                            <td>01 Mar 2025, 09:58 AM</td>
-                            <td>ProDot</td>
-                            <td>Fulfilment in Progress</td>
-                            <td>Direct</td>
-                            <td>-</td>
-                            <td>₹7,502</td>
-                            <td>OEM verified Reseller</td>
-                            <td><a href="#" class="btn-link">View</a></td>
-                        </tr>
-                        <tr>
-                            <td><i class="fas fa-caret-down text-muted"></i></td>
-                            <td><a href="#" class="btn-link">GEMC-511687784859865</a></td>
-                            <td>01 Mar 2025, 10:34 AM</td>
-                            <td>ProDot</td>
-                            <td>Order Cancelled</td>
-                            <td>Direct</td>
-                            <td>-</td>
-                            <td>₹5,850</td>
-                            <td>OEM verified Reseller</td>
-                            <td><a href="#" class="btn-link">View</a></td>
-                        </tr>
-                        <tr>
-                            <td><i class="fas fa-caret-down text-muted"></i></td>
-                            <td><a href="#" class="btn-link">GEMC-511687752609487</a></td>
-                            <td>01 Mar 2025, 10:45 AM</td>
-                            <td>ProDot</td>
-                            <td>Order Completed</td>
-                            <td>Direct</td>
-                            <td>-</td>
-                            <td>₹2,640</td>
-                            <td>OEM verified Reseller</td>
-                            <td><a href="#" class="btn-link">View</a></td>
-                        </tr>
-                        <tr>
-                            <td><i class="fas fa-caret-down text-muted"></i></td>
-                            <td><a href="#" class="btn-link">GEMC-511687757762918</a></td>
-                            <td>01 Mar 2025, 11:07 AM</td>
-                            <td>ProDot</td>
-                            <td>Order Completed</td>
-                            <td>Direct</td>
-                            <td>-</td>
-                            <td>₹2,760</td>
-                            <td>OEM verified Reseller</td>
-                            <td><a href="#" class="btn-link">View</a></td>
-                        </tr>
-                        <tr>
-                            <td><i class="fas fa-caret-down text-muted"></i></td>
-                            <td><a href="#" class="btn-link">GEMC-51168779116856</a></td>
-                            <td>01 Mar 2025, 11:25 AM</td>
-                            <td>ProDot</td>
-                            <td>Order Completed</td>
-                            <td>Direct</td>
-                            <td>-</td>
-                            <td>₹17,350</td>
-                            <td>OEM verified Reseller</td>
-                            <td><a href="#" class="btn-link">View</a></td>
-                        </tr>
-                        <tr>
-                            <td><i class="fas fa-caret-down text-muted"></i></td>
-                            <td><a href="#" class="btn-link">GEMC-511687777542293</a></td>
-                            <td>01 Mar 2025, 11:27 AM</td>
-                            <td>ProDot</td>
-                            <td>Fulfilment in Progress</td>
-                            <td>Direct</td>
-                            <td>-</td>
-                            <td>₹1,600</td>
-                            <td>OEM verified Reseller</td>
-                            <td><a href="#" class="btn-link">View</a></td>
-                        </tr>
-                        <tr>
-                            <td><i class="fas fa-caret-down text-muted"></i></td>
-                            <td><a href="#" class="btn-link">GEMC-511687795503035</a></td>
-                            <td>01 Mar 2025, 11:28 AM</td>
-                            <td>ProDot</td>
-                            <td>Fulfilment in Progress</td>
-                            <td>Direct</td>
-                            <td>-</td>
-                            <td>₹1,485</td>
-                            <td>OEM verified Reseller</td>
-                            <td><a href="#" class="btn-link">View</a></td>
-                        </tr>
-                        <tr>
-                            <td><i class="fas fa-caret-down text-muted"></i></td>
-                            <td><a href="#" class="btn-link">GEMC-511687707510703</a></td>
-                            <td>01 Mar 2025, 11:28 AM</td>
-                            <td>NEXIUM</td>
-                            <td>Order Completed</td>
-                            <td>Direct</td>
-                            <td>-</td>
-                            <td>₹75,000.9</td>
-                            <td>OEM verified Reseller</td>
-                            <td><a href="#" class="btn-link">View</a></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+    <div class="box bg-white p-3">
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Contract ID</th>
+                        <th>Status</th>
+                        <th>Organization Type</th>
+                        <!-- <th>Ministry</th> -->
+                        <!-- <th>Department</th>
+                        <th>Organization Name</th>
+                        <th>Office Zone</th>
+                        <th>Location</th>
+                        <th>Buyer Designation</th>
+                        <th>Buying Mode</th>
+                        <th>Bid Number</th>
+                        <th>Contract Date</th>
+                        <th>Total</th>
+                        <th>Items (summary)</th> -->
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for contract in contracts %}
+                    <tr>
+                        <td>{{ contract.id }}</td>
+                        <td>{{ contract.contract_id }}</td>
+                        <td>{{ contract.status }}</td>
+                        <td>{{ contract.organization_type }}</td>
+                        <!-- <td>{{ contract.ministry }}</td>
+                        <td>{{ contract.department }}</td>
+                        <td>{{ contract.organization_name }}</td>
+                        <td>{{ contract.office_zone }}</td>
+                        <td>{{ contract.location }}</td>
+                        <td>{{ contract.buyer_designation }}</td>
+                        <td>{{ contract.buying_mode }}</td>
+                        <td>{{ contract.bid_number }}</td>
+                        <td>{{ contract.contract_date }}</td>
+                        <td>{{ contract.total }}</td> -->
+                        <!-- <td>
+                            {% set item_summaries = [] %}
+                            {% for item in contract.items %}
+                            {% set summary = [] %}
+                            {% if item.service %}{% set _ = summary.append("S:" ~ item.service) %}{% endif %}
+                            {% if item.product %}{% set _ = summary.append("P:" ~ item.product) %}{% endif %}
+                            {% if item.brand %}{% set _ = summary.append("B:" ~ item.brand) %}{% endif %}
+                            {% if item.model %}{% set _ = summary.append("M:" ~ item.model) %}{% endif %}
+                            {% set _ = item_summaries.append(summary | join(", ")) %}
+                            {% endfor %}
+                            {{ item_summaries | join(" | ") }}
+                        </td> -->
 
-            <div class="d-flex justify-content-between align-items-center mt-3">
-                <p class="text-muted mb-0">Showing 1 to 10 of 2204 results</p>
-                <nav aria-label="Page navigation">
-                    <ul class="pagination pagination-sm mb-0">
-                        <li class="page-item disabled"><a class="page-link" href="#">&lt;</a></li>
-                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                        <li class="page-item"><a class="page-link" href="#">2</a></li>
-                        <li class="page-item"><a class="page-link" href="#">3</a></li>
-                        <li class="page-item"><a class="page-link" href="#">4</a></li>
-                        <li class="page-item"><a class="page-link" href="#">5</a></li>
-                        <li class="page-item"><a class="page-link" href="#">&gt;</a></li>
-                    </ul>
-                </nav>
-            </div>
+                        <td>
+<button
+    class="btn btn-outline-secondary btn-sm view-contract-btn"
+    data-contract-id="{{ contract.contract_id }}"
+    data-status="{{ contract.status }}"
+    data-org="{{ contract.organization_name }}"
+    data-date="{{ contract.contract_date }}"
+    data-total="{{ contract.total }}"
+    data-items="{% for item in contract.items %}
+        {% if item.service %}S:{{ item.service }} {% endif %}
+        {% if item.product %}P:{{ item.product }} {% endif %}
+        {% if item.brand %}B:{{ item.brand }} {% endif %}
+        {% if item.model %}M:{{ item.model }} {% endif %}
+        |{% endfor %}"
+>
+    View
+</button>
+
+
+                            <!-- <button class="btn btn-outline-secondary btn-sm view-contract-btn"
+                                data-contract-id="{{ contract.contract_id }}">
+                                View
+                            </button> -->
+
+
+                        </td>
+
+
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="16" class="text-center">No contracts found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+        <div class="d-flex justify-content-end mt-2">
+            <nav>
+                <ul class="pagination mb-0">
+                    {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link"
+                            href="?page={{pagination.prev_num}}{% for k, v in filters_applied.items() %}&{{k}}={{v}}{% endfor %}">&laquo;
+                            Prev</a>
+                    </li>
+                    {% endif %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Page {{pagination.page}} of {{pagination.pages}}</span>
+                    </li>
+                    {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link"
+                            href="?page={{pagination.next_num}}{% for k, v in filters_applied.items() %}&{{k}}={{v}}{% endfor %}">Next
+                            &raquo;</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html> -->
+<!-- Contract Detail Modal -->
+<div class="modal fade" id="contractDetailModal" tabindex="-1" aria-labelledby="contractDetailLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="contractDetailLabel">Contract Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="contractModalBody">
+                Loading...
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+// Helper function to display field or 'None'
+function displayOrNone(value) {
+    return value ?? "None"
+}
+
+// document.addEventListener('DOMContentLoaded', function () {
+//     const modal = new bootstrap.Modal(document.getElementById('contractDetailModal'))
+//     const modalBody = document.getElementById('contractModalBody')
+
+//     document.querySelectorAll('.view-contract-btn').forEach(button => {
+//         button.addEventListener('click', function () {
+//             const contractId = this.getAttribute('data-contract-id')
+//             modalBody.innerHTML = 'Loading...'
+//             modal.show()
+
+//             fetch(`/user/contract/api/${contractId}`)
+//                 .then(response => response.json())
+//                 .then(data => {
+//                     if (!data.contract) {
+//                         modalBody.innerHTML = `<p class="text-danger">${data.error || 'Contract not found.'}</p>`
+//                         return
+//                     }
+//                     const contract = data.contract
+//                     const seller = data.seller // may be null
+
+//                     let itemsHtml = '<ul>'
+//                     contract.items.forEach(item => {
+//                         itemsHtml += '<li>'
+//                         itemsHtml += `Service: ${displayOrNone(item.service)} | `
+//                         itemsHtml += `Product: ${displayOrNone(item.product)} | `
+//                         itemsHtml += `Brand: ${displayOrNone(item.brand)} | `
+//                         itemsHtml += `Model: ${displayOrNone(item.model)}`
+//                         itemsHtml += '</li>'
+//                     })
+//                     itemsHtml += '</ul>'
+
+//                     let sellerHtml = ''
+//                     if (seller) {
+//                         sellerHtml = `<h5>Seller Information</h5>
+//                         <dl>
+//                             <dt>Company Name:</dt><dd>${displayOrNone(seller.company_name)}</dd>
+//                             <dt>Seller ID:</dt><dd>${displayOrNone(seller.seller_id)}</dd>
+//                             <dt>Contact No:</dt><dd>${displayOrNone(seller.contact_no)}</dd>
+//                             <dt>Email:</dt><dd>${displayOrNone(seller.email)}</dd>
+//                             <dt>Address:</dt><dd>${displayOrNone(seller.address)}</dd>
+//                             <dt>MSME Reg No:</dt><dd>${displayOrNone(seller.msme_reg_no)}</dd>
+//                             <dt>GSTIN:</dt><dd>${displayOrNone(seller.gstin)}</dd>
+//                         </dl>`
+//                     } else {
+//                         sellerHtml = '<p>No seller information available.</p>'
+//                     }
+
+//                     modalBody.innerHTML = `
+//                         <h5>Contract Details</h5>
+//                         <p><strong>ID:</strong> ${displayOrNone(contract.contract_id)}</p>
+//                         <p><strong>Status:</strong> ${displayOrNone(contract.status)}</p>
+//                         <p><strong>Organization:</strong> ${displayOrNone(contract.organization_name)}</p>
+//                         <p><strong>Contract Date:</strong> ${displayOrNone(contract.contract_date)}</p>
+//                         <p><strong>Total:</strong> ${displayOrNone(contract.total)}</p>
+                        
+//                         <h5>Items</h5>
+//                         ${itemsHtml}
+
+//                         ${sellerHtml}
+//                     `
+//                 })
+//                 .catch(err => {
+//                     modalBody.innerHTML = `<p class="text-danger">Error loading contract details.</p>`
+//                 })
+//         })
+//     })
+// })
+
+// </script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const modal = new bootstrap.Modal(
+        document.getElementById('contractDetailModal')
+    )
+    const modalBody = document.getElementById('contractModalBody')
+
+    document.querySelectorAll('.view-contract-btn').forEach(button => {
+        button.addEventListener('click', function () {
+
+            modalBody.innerHTML = `
+                <h5>Contract Details</h5>
+                <p><strong>Contract ID:</strong> ${this.dataset.contractId}</p>
+                <p><strong>Status:</strong> ${this.dataset.status}</p>
+                <p><strong>Organization:</strong> ${this.dataset.org}</p>
+                <p><strong>Contract Date:</strong> ${this.dataset.date}</p>
+                <p><strong>Total:</strong> ${this.dataset.total}</p>
+
+                <h5>Items</h5>
+                <p>${this.dataset.items}</p>
+            `
+
+            modal.show()
+        })
+    })
+})
+</script>
 
 
 {% endblock %}

@@ -1,7 +1,499 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>User Sellers</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        /* Basic styling for table and pagination */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1em;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 0.5em;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .pagination {
+            margin-top: 1em;
+            display: flex;
+            justify-content: center;
+            gap: 0.5em;
+        }
+        .pagination a, .pagination span {
+            padding: 0.5em 0.8em;
+            border: 1px solid #ccc;
+            color: #333;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .pagination .current {
+            background-color: #007bff;
+            color: white;
+            pointer-events: none;
+            border-color: #007bff;
+        }
+        .pagination a:hover {
+            background-color: #e9ecef;
+        }
+        .filter-form {
+            margin-bottom: 1em;
+        }
+        .filter-form label {
+            margin-right: 10px;
+        }
+        .user-categories {
+            margin-top: 1em;
+            font-style: italic;
+            color: #555;
+        }
+        .no-sellers {
+            text-align: center;
+            font-style: italic;
+            color: #777;
+            margin-top: 2em;
+        }
+    </style>
+</head>
+<body>
+    <h1>User Sellers</h1>
+
+    <form method="get" class="filter-form">
+        <label>
+            Company Name:
+            <input type="text" name="company_name" value="{{ filters_applied.get('company_name', '') }}">
+        </label>
+        <label>
+            Category Name:
+            <input type="text" name="category_name" value="{{ filters_applied.get('category_name', '') }}">
+        </label>
+        <label>
+            GSTIN:
+            <input type="text" name="gstin" value="{{ filters_applied.get('gstin', '') }}">
+        </label>
+        <label>
+            MSME Reg No:
+            <input type="text" name="msme_reg_no" value="{{ filters_applied.get('msme_reg_no', '') }}">
+        </label>
+        <label>
+            Email:
+            <input type="text" name="email" value="{{ filters_applied.get('email', '') }}">
+        </label>
+        <label>
+            Contact No:
+            <input type="text" name="contact_no" value="{{ filters_applied.get('contact_no', '') }}">
+        </label>
+        <button type="submit">Filter</button>
+        <a href="{{ url_for('user.user_sellers') }}">Reset</a>
+    </form>
+
+    {% if sellers %}
+        <h2>Unique Company Name Count</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Company Name</th>
+            <th>Count</th>
+            <th>Email</th>
+            <th>Category</th>
+            <th>GSTIN</th>
+            <th>Contact No</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for entry in unique_sellers %}
+        <tr>
+            <td>{{ entry.company_name or '-' }}</td>
+            <td>{{ entry.count }}</td>
+            <td>{{ entry.seller.email or '-' }}</td>
+            <td>{{ entry.seller.category_name or '-' }}</td>
+            <td>{{ entry.seller.gstin or '-' }}</td>
+            <td>{{ entry.seller.contact_no or '-' }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+
+        <div class="pagination">
+            {% if pagination.has_prev %}
+                <a href="{{ url_for('user.user_sellers', page=pagination.prev_num, **filters_applied) }}">&laquo; Prev</a>
+            {% else %}
+                <span class="disabled">&laquo; Prev</span>
+            {% endif %}
+
+            <span class="current">Page {{ pagination.page }} of {{ pagination.pages }}</span>
+
+            {% if pagination.has_next %}
+                <a href="{{ url_for('user.user_sellers', page=pagination.next_num, **filters_applied) }}">Next &raquo;</a>
+            {% else %}
+                <span class="disabled">Next &raquo;</span>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="no-sellers">
+            No sellers found matching the criteria.
+        </div>
+    {% endif %}
+
+    <div class="user-categories">
+        <strong>Your Allowed Categories:</strong>
+        {% if user_categories %}
+            {{ user_categories|join(', ') }}
+        {% else %}
+            None assigned.
+        {% endif %}
+    </div>
+</body>
+</html> -->
+
 {% extends "base.html" %}
-{% block title %}sellers{% endblock %}
+{% block title %}Seller Management{% endblock %}
 {% block content %}
 
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Seller Management & Analytics</h2>
+        </div>
+        <div class="d-flex align-items-center">
+            <!-- Optional global search/filter bar -->
+        </div>
+    </div>
+
+    <!-- Filter Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label for="company_name" class="form-label">Company Name</label>
+                    <input type="text" class="form-control form-control-sm" name="company_name" id="company_name"
+                        value="{{ filters_applied.get('company_name', '') }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="category_name" class="form-label">Category</label>
+                    <input type="text" class="form-control form-control-sm" name="category_name" id="category_name"
+                        value="{{ filters_applied.get('category_name', '') }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="gstin" class="form-label">GSTIN</label>
+                    <input type="text" class="form-control form-control-sm" name="gstin" id="gstin"
+                        value="{{ filters_applied.get('gstin', '') }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="msme_reg_no" class="form-label">MSME Reg No</label>
+                    <input type="text" class="form-control form-control-sm" name="msme_reg_no" id="msme_reg_no"
+                        value="{{ filters_applied.get('msme_reg_no', '') }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="text" class="form-control form-control-sm" name="email" id="email"
+                        value="{{ filters_applied.get('email', '') }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="contact_no" class="form-label">Contact No</label>
+                    <input type="text" class="form-control form-control-sm" name="contact_no" id="contact_no"
+                        value="{{ filters_applied.get('contact_no', '') }}">
+                </div>
+                <div class="col-md-12 d-flex justify-content-end mt-3">
+                    <button type="submit" class="btn btn-primary btn-sm me-2">Filter</button>
+                    <a href="{{ url_for('user.user_sellers') }}" class="btn btn-outline-secondary btn-sm">Reset</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- ================= CONTRACT MODAL ================= -->
+<!-- Contract Details Modal -->
+<div class="modal fade" id="contractModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Contract Details</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body" id="contractModalBody">
+        <div class="text-center text-muted">Loading...</div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="downloadPdfBtn" class="btn btn-outline-primary">Download PDF</button>
+        <button id="exportExcelBtn" class="btn btn-outline-success">Export Excel</button>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+    <!-- Unique Company Name Count Table w/ Pagination -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">
+                Unique Company Name Overview
+                <span class="badge bg-primary ms-2">
+                    Total Unique Sellers: {{ pagination.total }}
+                </span>
+            </h5>
+            {% if unique_sellers %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Contract Number</th>
+
+                            <th>Company Name</th>
+                            <th>Duplicate Count</th>
+                            <th>Email</th>
+                            <th>Category</th>
+                            <th>GSTIN</th>
+                            <th>Contact No</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in unique_sellers %}
+                        <tr>
+
+                            <td>
+
+                                <button class="btn btn-sm btn-primary"
+                                    onclick='openContractModal({{ entry.contract_nos | tojson }})'>
+                                    View Contracts
+                                </button>
+
+                                {% for c in entry.contract_nos %}
+                                <span class="badge bg-primary">{{ c }}</span>
+                                {% endfor %}
+                            </td>
+                            <td>{{ entry.company_name or '-' }}</td>
+                            <td>{{ entry.count }}</td>
+                            <td>{{ entry.seller.email or '-' }}</td>
+                            <td>{{ entry.seller.category_name or '-' }}</td>
+                            <td>{{ entry.seller.gstin or '-' }}</td>
+                            <td>{{ entry.seller.contact_no or '-' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <p class="text-muted mb-0">
+                    Showing {{ (pagination.page-1)*pagination.per_page+1 }}
+                    to {{ (pagination.page-1)*pagination.per_page + unique_sellers|length }}
+                    of {{ pagination.total }} unique sellers
+                </p>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                            <a class="page-link"
+                                href="{% if pagination.has_prev %}{{ url_for('user.user_sellers', page=pagination.prev_num, **filters_applied) }}{% else %}#{% endif %}">&lt;</a>
+                        </li>
+                        {% for p in range(1, pagination.pages+1) %}
+                        <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('user.user_sellers', page=p, **filters_applied) }}">{{
+                                p }}</a>
+                        </li>
+                        {% endfor %}
+                        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                            <a class="page-link"
+                                href="{% if pagination.has_next %}{{ url_for('user.user_sellers', page=pagination.next_num, **filters_applied) }}{% else %}#{% endif %}">&gt;</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            {% else %}
+            <div class="text-muted">No sellers found matching the criteria.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <strong>Your Allowed Categories:</strong>
+        {% if user_categories %}
+        <span class="text-primary">{{ user_categories|join(', ') }}</span>
+        {% else %}
+        <span class="text-muted">None assigned.</span>
+        {% endif %}
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<script>
+function sanitizeJSON(data) {
+  return JSON.parse(
+    JSON.stringify(data, (k, v) =>
+      (typeof v === "number" && isNaN(v)) ? null : v
+    )
+  );
+}
+
+function openContractModal(contractNos) {
+  fetch("/user/api/contracts/by-contract-nos", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": document.querySelector('input[name="csrf_token"]')?.value
+    },
+    body: JSON.stringify({ contract_nos: contractNos })
+  })
+  .then(res => res.json())
+  .then(rawData => {
+    const data = sanitizeJSON(rawData);
+    renderContractModal(data);
+    new bootstrap.Modal(document.getElementById("contractModal")).show();
+  });
+}
+
+function renderContractModal(contracts) {
+  let html = "";
+
+  contracts.forEach(c => {
+    html += `
+      <div class="border rounded p-3 mb-4">
+        <h6 class="fw-bold">${c.contract_id}</h6>
+        <p class="small text-muted">
+          ${c.organization_name || "-"} |
+          ${c.ministry || "-"} |
+          ₹${c.total?.toLocaleString()}
+        </p>
+    `;
+
+    // 🔹 Group items by brand
+    const brandMap = {};
+    (c.items || []).forEach(i => {
+      const brand = i.brand || "Unknown Brand";
+      brandMap[brand] = brandMap[brand] || [];
+      brandMap[brand].push(i);
+    });
+
+    for (const brand in brandMap) {
+      html += `<h6 class="mt-3 text-primary">${brand}</h6>`;
+      html += `
+        <table class="table table-sm table-bordered">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Model</th>
+              <th>Qty</th>
+              <th>Price</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      brandMap[brand].forEach(i => {
+        html += `
+          <tr>
+            <td>${i.product || "-"}</td>
+            <td>${i.model || "-"}</td>
+            <td>${i.ordered_quantity || 0}</td>
+            <td>₹${i.price?.toLocaleString() || 0}</td>
+          </tr>
+        `;
+      });
+
+      html += `</tbody></table>`;
+    }
+
+    html += `</div>`;
+
+    // Attach actions
+    document.getElementById("downloadPdfBtn").onclick = () =>
+      window.open(`/user/contracts/${c.contract_id}/pdf`, "_blank");
+
+    document.getElementById("exportExcelBtn").onclick = () =>
+      exportToExcel(c);
+  });
+
+  document.getElementById("contractModalBody").innerHTML = html;
+}
+
+function exportToExcel(contract) {
+  const rows = [];
+
+  (contract.items || []).forEach(i => {
+    rows.push({
+      ContractID: contract.contract_id,
+      Brand: i.brand || "",
+      Product: i.product || "",
+      Model: i.model || "",
+      Quantity: i.ordered_quantity || 0,
+      Price: i.price || 0
+    });
+  });
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Items");
+  XLSX.writeFile(wb, `${contract.contract_id}.xlsx`);
+}
+</script>
+
+<!-- <script>
+    function openContractModal(contractNos) {
+       
+        const modal = new bootstrap.Modal(document.getElementById('contractsModal'));
+        modal.show();
+
+        const table = document.getElementById("contractsTable");
+        const tbody = table.querySelector("tbody");
+        const loader = document.getElementById("contractsLoader");
+
+        tbody.innerHTML = "";
+        table.classList.add("d-none");
+        loader.classList.remove("d-none");
+
+        fetch("/user/api/contracts/by-contract-nos", {
+            method: "POST",
+            headers: { "Content-Type": "application/json",
+                "X-CSRFToken": document.querySelector('meta[name="csrf-token"]').content
+             },
+            body: JSON.stringify({ contract_nos: contractNos })
+        })
+            .then(r => r.json())
+            .then(data => {
+                loader.classList.add("d-none");
+                table.classList.remove("d-none");
+
+                if (!data.length) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-center">No contracts found</td></tr>`;
+                    return;
+                }
+
+                data.forEach(c => {
+                    tbody.innerHTML += `
+        <tr>
+          <td>${c.contract_id}</td>
+          <td>${c.status || "-"}</td>
+          <td>${c.ministry || "-"}</td>
+          <td>${c.department || "-"}</td>
+          <td>${c.buying_mode || "-"}</td>
+          <td>${c.contract_date || "-"}</td>
+          <td>₹${(c.total || 0).toLocaleString()}</td>
+        </tr>
+      `;
+                });
+            });
+    }
+</script> -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
+
+
+
+
+
+
+<!--
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,7 +514,7 @@
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        .table th, .table td {
+        .table th, .table td {S
             vertical-align: middle;
             white-space: nowrap;
         }
@@ -241,4 +733,4 @@
 </html>
 
 
-{% endblock %}
+ -->

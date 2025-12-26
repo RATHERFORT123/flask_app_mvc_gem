@@ -4,7 +4,7 @@
 {% block content %}
 <h1>Manage Sellers</h1>
 <!-- <a href="{{ url_for('dashboard.manage_sellers') }}">Manage Sellers</a> -->
-<a href="{{ url_for('dashboard.upload_sellers_excel') }}">Upload Sellers (Excel)</a>
+<a class="btn btn-primary" href="{{ url_for('dashboard.upload_sellers_excel') }}">Add Upload Sellers</a>
 
 <!-- Flash messages -->
 {% with messages = get_flashed_messages(with_categories=true) %}
@@ -18,14 +18,38 @@
 {% endwith %}
 
 <!-- Filter/Search form -->
-<form method="get" action="{{ url_for('dashboard.manage_sellers') }}" class="form-inline mb-3">
+<form method="get" action="{{ url_for('dashboard.manage_sellers') }}" class="bg-white p-3 rounded shadow mb-3">
+  <div class="row g-3 align-items-end">
+    <div class="col-md-3">
+      <input type="text" name="contract_no" placeholder="Contract No" value="{{ filters.contract_no or '' }}" class="form-control">
+    </div>
+    <div class="col-md-3">
+      <input type="text" name="category_name" placeholder="Category Name" value="{{ filters.category_name or '' }}" class="form-control">
+    </div>
+    <div class="col-md-2">
+      <input type="text" name="seller_id" placeholder="Seller ID" value="{{ filters.seller_id or '' }}" class="form-control">
+    </div>
+    <div class="col-md-3">
+      <input type="text" name="company_name" placeholder="Company Name" value="{{ filters.company_name or '' }}" class="form-control">
+    </div>
+    <div class="col-md-1 d-grid">
+      <button type="submit" class="btn btn-primary">Filter</button>
+    </div>
+    <div class="col-md-1 d-grid">
+      <a href="{{ url_for('dashboard.manage_sellers') }}" class="btn btn-light">Clear</a>
+    </div>
+  </div>
+</form>
+
+
+<!-- <form method="get" action="{{ url_for('dashboard.manage_sellers') }}" class="form-inline mb-3">
   <input type="text" name="contract_no" placeholder="Contract No" value="{{ filters.contract_no or '' }}" class="form-control mr-2">
   <input type="text" name="category_name" placeholder="Category Name" value="{{ filters.category_name or '' }}" class="form-control mr-2">
   <input type="text" name="seller_id" placeholder="Seller ID" value="{{ filters.seller_id or '' }}" class="form-control mr-2">
   <input type="text" name="company_name" placeholder="Company Name" value="{{ filters.company_name or '' }}" class="form-control mr-2">
   <button type="submit" class="btn btn-primary">Filter</button>
   <a href="{{ url_for('dashboard.manage_sellers') }}" class="btn btn-secondary ml-2">Clear</a>
-</form>
+</form> -->
 
 <!-- Sellers Table -->
 <table class="table table-bordered table-hover">
@@ -102,8 +126,84 @@
 {% endif %}
 
 <!-- Add / Edit Seller Form -->
-<h2>{{ form.contract_no.data and "Edit Seller" or "Add Seller" }}</h2>
-<form method="post" action="{{ url_for('dashboard.manage_sellers') }}">
+<h2>{{ form.contract_no.data and "Edit Seller" or "Add Seller" }}</h2>\
+<form method="post" action="{{ url_for('dashboard.manage_sellers') }}" class="bg-white p-4 rounded shadow mb-4">
+  {{ form.hidden_tag() }}
+  <div class="row mb-3">
+    <div class="col-md-4">
+      <div class="form-group mb-2">
+        {{ form.contract_no.label(class="form-label fw-semibold") }}
+        {{ form.contract_no(class="form-control") }}
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="form-group mb-2">
+        {{ form.generated_date.label(class="form-label fw-semibold") }}
+        {{ form.generated_date(class="form-control") }}
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="form-group mb-2">
+        {{ form.category_name.label(class="form-label fw-semibold") }}
+        {{ form.category_name(class="form-control") }}
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-3">
+    <div class="col-md-3">
+      <div class="form-group mb-2">
+        {{ form.seller_id.label(class="form-label fw-semibold") }}
+        {{ form.seller_id(class="form-control") }}
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="form-group mb-2">
+        {{ form.company_name.label(class="form-label fw-semibold") }}
+        {{ form.company_name(class="form-control") }}
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="form-group mb-2">
+        {{ form.contact_no.label(class="form-label fw-semibold") }}
+        {{ form.contact_no(class="form-control") }}
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="form-group mb-2">
+        {{ form.email.label(class="form-label fw-semibold") }}
+        {{ form.email(class="form-control") }}
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <div class="form-group">
+      {{ form.address.label(class="form-label fw-semibold") }}
+      {{ form.address(class="form-control") }}
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="form-group mb-2">
+        {{ form.msme_reg_no.label(class="form-label fw-semibold") }}
+        {{ form.msme_reg_no(class="form-control") }}
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="form-group mb-2">
+        {{ form.gstin.label(class="form-label fw-semibold") }}
+        {{ form.gstin(class="form-control") }}
+      </div>
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
+  <a href="{{ url_for('dashboard.manage_sellers') }}" class="btn btn-light ms-2">Clear</a>
+</form>
+
+<!-- <form method="post" action="{{ url_for('dashboard.manage_sellers') }}">
   {{ form.hidden_tag() }}
   <div class="form-row">
     <div class="form-group col-md-4">
@@ -143,6 +243,6 @@
   </div>
   <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
   <a href="{{ url_for('dashboard.manage_sellers') }}" class="btn btn-secondary">Clear</a>
-</form>
+</form> -->
 
 {% endblock %}

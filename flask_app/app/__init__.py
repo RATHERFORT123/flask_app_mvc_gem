@@ -1,6 +1,10 @@
 from flask import Flask, render_template
 from .extensions import db, migrate, login_manager, csrf
 from .controllers.auth_controller import auth_bp
+from .controllers.admin_controller import admin_bp
+from flask_wtf import CSRFProtect
+
+
 from .controllers.dashboard_controller import dashboard_bp
 from .controllers.user_controller import user_bp  # if implemented user_controller
 import os
@@ -22,6 +26,7 @@ def create_app(config_object="config.DevConfig"):
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(user_bp)  # Uncomment if you implement user_controller
+    app.register_blueprint(admin_bp)
 
     register_errorhandlers(app)
 
