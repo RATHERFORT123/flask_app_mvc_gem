@@ -283,20 +283,6 @@ def user_sellers():
     total = base_query.count()
     sellers = base_query.order_by(Seller.id.desc()).offset((page - 1) * per_page).limit(per_page).all()
 
-    # Unique company name and count logic: only for the current page's sellers
-    # company_list = [s.company_name.strip() if s.company_name else '' for s in sellers]
-    # company_counts = Counter(company_list)
-    # unique_sellers = []
-    # for name, count in company_counts.items():
-    #     seller_obj = next((s for s in sellers if (s.company_name or '').strip() == name), None)
-    #     print(unique_sellers)
-    #     if seller_obj:
-    #         unique_sellers.append({
-    #             'company_name': name,
-    #             'count': count,
-    #             'seller': seller_obj
-    #         })
-    # Unique company name and count logic: only for the current page's sellers
     company_list = [s.company_name.strip() if s.company_name else '' for s in sellers]
     company_counts = Counter(company_list)
     
