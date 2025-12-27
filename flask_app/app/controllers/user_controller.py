@@ -539,14 +539,31 @@ def analytics_avg_by_buying_mode():
     return jsonify([{"buying_mode": r[0], "avg_value": float(r[1] or 0)} for r in data])
 
 
+# @user_bp.route("/api/analytics/count_by_month")
+# def analytics_count_by_month():
+#     filters = parse_filters(request.args)
+#     data = AnalyticsRepository.get_count_by_month(filters)
+#     return jsonify([
+#         {"year": int(r[0]), "month": int(r[1]), "count": r[2]}
+#         for r in data
+#     ])
 @user_bp.route("/api/analytics/count_by_month")
 def analytics_count_by_month():
     filters = parse_filters(request.args)
     data = AnalyticsRepository.get_count_by_month(filters)
-    return jsonify([
-        {"year": int(r[0]), "month": int(r[1]), "count": r[2]}
-        for r in data
-    ])
+
+    result = []
+    for r in data:
+        if r[0] is None or r[1] is None:
+            continue   # skip invalid rows
+
+        result.append({
+            "year": int(r[0]),
+            "month": int(r[1]),
+            "count": int(r[2])
+        })
+
+    return jsonify(result)
 
 # -----------------------------------------------------------------------------------
 @user_bp.route('/user_compare_brand_info')

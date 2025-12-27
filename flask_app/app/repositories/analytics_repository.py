@@ -150,19 +150,35 @@ class AnalyticsRepository:
     # -------------------------
     # COUNT BY MONTH
     # -------------------------
+    # @staticmethod
+    # def get_count_by_month(filters):
+    #     query = db.session.query(
+    #         extract("year", Contract.contract_date).label("year"),
+    #         extract("month", Contract.contract_date).label("month"),
+    #         func.count(Contract.id)
+    #     )
+
+    #     query = AnalyticsRepository.apply_filters(query, filters)
+
+    #     query = query.group_by("year", "month").order_by("year", "month")
+
+    #     return query.all()
     @staticmethod
     def get_count_by_month(filters):
         query = db.session.query(
             extract("year", Contract.contract_date).label("year"),
             extract("month", Contract.contract_date).label("month"),
-            func.count(Contract.id)
+            func.count(Contract.id).label("count")
+        ).filter(
+            Contract.contract_date.isnot(None)   # 🔥 IMPORTANT
         )
-
+    
         query = AnalyticsRepository.apply_filters(query, filters)
-
+    
         query = query.group_by("year", "month").order_by("year", "month")
-
+    
         return query.all()
+
 
 
 
