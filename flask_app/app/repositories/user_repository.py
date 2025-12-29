@@ -41,7 +41,7 @@ def save_user_history(user: User):
     }
     history = UserHistory(user_id=user.id, data_snapshot=json.dumps(snapshot))
     db.session.add(history)
-    db.session.commit()
+    # db.session.commit()
 
 
 def get_by_id(user_id: int) -> Optional[User]:
@@ -84,34 +84,84 @@ def create_user(username: str, email: str, password: str, is_admin: bool=False, 
     db.session.commit()
     return user
 
+def update_user(
+    u: User,
+    username: str,
+    email: str,
+    password: str | None,
+    is_admin: bool,
+    is_verified: bool,
+    is_blocked: bool,
+    address: str = None,
+    number: str = None,
+    comment: str = None,
+    category_names: str = None,
+    brand_names: str = None,
+    assigned_date_range_start=None,
+    assigned_date_range_end=None,
+    subscription_date=None,
+    amount=None,
+    payment_status=None,
+    subscription_plan=None
+) -> User:
+    try:
+        save_user_history(u)
 
-def update_user(u: User, username: str, email: str, password: str | None, is_admin: bool, is_verified: bool, is_blocked: bool,
-                address: str = None, number: str = None, comment: str = None,
-                category_names: str = None, brand_names: str = None,
-                assigned_date_range_start=None, assigned_date_range_end=None, subscription_date=None,
-                amount=None, payment_status=None, subscription_plan=None) -> User:
-    save_user_history(u)
+        u.username = username.strip()
+        u.email = email.strip().lower()
 
-    u.username = username.strip()
-    u.email = email.strip().lower()
-    if password:
-        u.set_password(password)
-    u.is_admin = is_admin
-    u.is_verified = is_verified
-    u.is_blocked = is_blocked
-    u.address = address
-    u.number = number
-    u.comment = comment
-    u.category_names = _unique_comma_separated(category_names)
-    u.brand_names = _unique_comma_separated(brand_names)
-    u.assigned_date_range_start = assigned_date_range_start
-    u.assigned_date_range_end = assigned_date_range_end
-    u.subscription_date = subscription_date
-    u.amount = amount
-    u.payment_status = payment_status
-    u.subscription_plan = subscription_plan
-    db.session.commit()
-    return u
+        if password:
+            u.set_password(password)
+
+        u.is_admin = is_admin
+        u.is_verified = is_verified
+        u.is_blocked = is_blocked
+        u.address = address
+        u.number = number
+        u.comment = comment
+        u.category_names = _unique_comma_separated(category_names)
+        u.brand_names = _unique_comma_separated(brand_names)
+        u.assigned_date_range_start = assigned_date_range_start
+        u.assigned_date_range_end = assigned_date_range_end
+        u.subscription_date = subscription_date
+        u.amount = amount
+        u.payment_status = payment_status
+        u.subscription_plan = subscription_plan
+
+        db.session.commit()
+        return u
+
+    except Exception as e:
+        db.session.rollback()   # 🔥 THIS IS THE KEY
+        raise
+
+# def update_user(u: User, username: str, email: str, password: str | None, is_admin: bool, is_verified: bool, is_blocked: bool,
+#                 address: str = None, number: str = None, comment: str = None,
+#                 category_names: str = None, brand_names: str = None,
+#                 assigned_date_range_start=None, assigned_date_range_end=None, subscription_date=None,
+#                 amount=None, payment_status=None, subscription_plan=None) -> User:
+#     save_user_history(u)
+
+#     u.username = username.strip()
+#     u.email = email.strip().lower()
+#     if password:
+#         u.set_password(password)
+#     u.is_admin = is_admin
+#     u.is_verified = is_verified
+#     u.is_blocked = is_blocked
+#     u.address = address
+#     u.number = number
+#     u.comment = comment
+#     u.category_names = _unique_comma_separated(category_names)
+#     u.brand_names = _unique_comma_separated(brand_names)
+#     u.assigned_date_range_start = assigned_date_range_start
+#     u.assigned_date_range_end = assigned_date_range_end
+#     u.subscription_date = subscription_date
+#     u.amount = amount
+#     u.payment_status = payment_status
+#     u.subscription_plan = subscription_plan
+#     db.session.commit()
+#     return u
 
 
 def delete_user(u: User) -> None:

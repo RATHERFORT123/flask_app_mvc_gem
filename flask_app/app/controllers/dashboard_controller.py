@@ -82,6 +82,50 @@ def admin_user_create():
     return render_template("admin_user_form.html", form=form, action="Create")
 
 
+# @dashboard_bp.route("/admin/users/<int:user_id>/edit", methods=["GET", "POST"])
+# @login_required
+# @admin_required
+# def admin_user_edit(user_id):
+#     u = user_repository.get_by_id(user_id)
+#     if not u:
+#         abort(404)
+#     form = UserForm(obj=u)
+#     if request.method == "GET":
+#         form.category_names.data = u.category_names
+#         form.brand_names.data = u.brand_names
+#         form.assigned_date_range_start.data = u.assigned_date_range_start
+#         form.assigned_date_range_end.data = u.assigned_date_range_end
+#         form.subscription_date.data = u.subscription_date
+#         form.amount.data = u.amount
+#         form.payment_status.data = u.payment_status
+#         form.subscription_plan.data = u.subscription_plan
+#     if form.validate_on_submit():
+#         user_repository.update_user(
+#             u,
+#             username=form.username.data,
+#             email=form.email.data,
+#             password=form.password.data or None,
+#             is_admin=form.is_admin.data,
+#             is_verified=form.is_verified.data,
+#             is_blocked=form.is_blocked.data,
+#             address=form.address.data,
+#             number=form.number.data,
+#             comment=form.comment.data,
+#             category_names=form.category_names.data,
+#             brand_names=form.brand_names.data,
+#             assigned_date_range_start=form.assigned_date_range_start.data,
+#             assigned_date_range_end=form.assigned_date_range_end.data,
+#             subscription_date=form.subscription_date.data,
+#             amount=form.amount.data,
+#             payment_status=form.payment_status.data,
+#             subscription_plan=form.subscription_plan.data
+#         )
+#         flash("User updated.", "success")
+#         return redirect(url_for("dashboard.admin_dashboard"))
+#     return render_template("admin_user_form.html", form=form, action="Update")
+
+from flask import current_app
+
 @dashboard_bp.route("/admin/users/<int:user_id>/edit", methods=["GET", "POST"])
 @login_required
 @admin_required
@@ -89,7 +133,9 @@ def admin_user_edit(user_id):
     u = user_repository.get_by_id(user_id)
     if not u:
         abort(404)
+
     form = UserForm(obj=u)
+
     if request.method == "GET":
         form.category_names.data = u.category_names
         form.brand_names.data = u.brand_names
@@ -99,30 +145,45 @@ def admin_user_edit(user_id):
         form.amount.data = u.amount
         form.payment_status.data = u.payment_status
         form.subscription_plan.data = u.subscription_plan
+
     if form.validate_on_submit():
-        user_repository.update_user(
-            u,
-            username=form.username.data,
-            email=form.email.data,
-            password=form.password.data or None,
-            is_admin=form.is_admin.data,
-            is_verified=form.is_verified.data,
-            is_blocked=form.is_blocked.data,
-            address=form.address.data,
-            number=form.number.data,
-            comment=form.comment.data,
-            category_names=form.category_names.data,
-            brand_names=form.brand_names.data,
-            assigned_date_range_start=form.assigned_date_range_start.data,
-            assigned_date_range_end=form.assigned_date_range_end.data,
-            subscription_date=form.subscription_date.data,
-            amount=form.amount.data,
-            payment_status=form.payment_status.data,
-            subscription_plan=form.subscription_plan.data
-        )
-        flash("User updated.", "success")
-        return redirect(url_for("dashboard.admin_dashboard"))
-    return render_template("admin_user_form.html", form=form, action="Update")
+        try:
+            user_repository.update_user(
+                u,
+                username=form.username.data,
+                email=form.email.data,
+                password=form.password.data or None,
+                is_admin=form.is_admin.data,
+                is_verified=form.is_verified.data,
+                is_blocked=form.is_blocked.data,
+                address=form.address.data,
+                number=form.number.data,
+                comment=form.comment.data,
+                category_names=form.category_names.data,
+                brand_names=form.brand_names.data,
+                assigned_date_range_start=form.assigned_date_range_start.data,
+                assigned_date_range_end=form.assigned_date_range_end.data,
+                subscription_date=form.subscription_date.data,
+                amount=form.amount.data,
+                payment_status=form.payment_status.data,
+                subscription_plan=form.subscription_plan.data
+            )
+
+            flash("User updated.", "success")
+            return redirect(url_for("dashboard.admin_dashboard"))
+
+        except Exception as e:
+            # 🔥 CRITICAL
+            db.session.rollback()
+
+            current_app.logger.exception("User update failed")
+            flash("Update failed. Please try again.", "danger")
+
+    return render_template(
+        "admin_user_form.html",
+        form=form,
+        action="Update"
+    )
 
 
 @dashboard_bp.route("/admin/users/<int:user_id>/delete", methods=["POST"])

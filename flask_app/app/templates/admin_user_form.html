@@ -2,83 +2,6 @@
 {% block title %}{{ action }} User{% endblock %}
 
 {% block content %}
-<!-- <h2>{{ action }} User</h2>
-
-<form method="POST">
-  {{ form.hidden_tag() }}
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <div class="mb-3">
-    {{ form.username.label(class="form-label") }}
-    {{ form.username(class="form-control") }}
-    {% for e in form.username.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-  </div>
-  <div class="mb-3">
-    {{ form.email.label(class="form-label") }}
-    {{ form.email(class="form-control") }}
-    {% for e in form.email.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-  </div>
-  <div class="mb-3">
-    {{ form.password.label(class="form-label") }}
-    {{ form.password(class="form-control") }}
-    {% for e in form.password.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-  </div>
-  <div class="mb-3">
-    {{ form.is_admin.label(class="form-label") }}
-    {{ form.is_admin() }}
-  </div>
-  <div class="mb-3">
-    {{ form.is_verified.label(class="form-label") }}
-    {{ form.is_verified() }}
-  </div>
-  <div class="mb-3">
-    {{ form.is_blocked.label(class="form-label") }}
-    {{ form.is_blocked() }}
-  </div>
-  <div class="mb-3">
-    {{ form.address.label(class="form-label") }}
-    {{ form.address(class="form-control") }}
-    {% for e in form.address.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-  </div>
-  <div class="mb-3">
-    {{ form.number.label(class="form-label") }}
-    {{ form.number(class="form-control") }}
-    {% for e in form.number.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-  </div>
-  <div class="mb-3">
-    {{ form.comment.label(class="form-label") }}
-    {{ form.comment(class="form-control") }}
-    {% for e in form.comment.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-  </div>
-  <div class="mb-3">
-    {{ form.category_names.label(class="form-label") }}
-    {{ form.category_names(class="form-control", placeholder="Enter categories separated by commas") }}
-    {% for e in form.category_names.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-  </div>
-  <div class="mb-3">
-    {{ form.brand_names.label(class="form-label") }}
-    {{ form.brand_names(class="form-control", placeholder="Enter brands separated by commas") }}
-    {% for e in form.brand_names.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-  </div>
-  <div class="mb-3">
-    {{ form.assigned_date_range_start.label(class="form-label") }}
-    {{ form.assigned_date_range_start(class="form-control", type="date") }}
-    {% for e in form.assigned_date_range_start.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-  </div>
-  <div class="mb-3">
-    {{ form.assigned_date_range_end.label(class="form-label") }}
-    {{ form.assigned_date_range_end(class="form-control", type="date") }}
-    {% for e in form.assigned_date_range_end.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-  </div>
-  <div class="mb-3">
-    {{ form.subscription_date.label(class="form-label") }}
-    {{ form.subscription_date(class="form-control", type="date") }}
-    {% for e in form.subscription_date.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
-  </div>
-
-  {{ form.submit(class="btn btn-primary w-100") }}
-  <a href="{{ url_for('dashboard.admin_dashboard') }}" class="btn btn-secondary">Cancel</a>
-</form> -->
-
 
 <div class="container">
   <h1>{{ action }} User</h1>
@@ -180,20 +103,43 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<!-- <script>
+  let isSubmitting = false;
+</script>
 
 <script>
   $(document).ready(function () {
     {% if form.brand_names is defined %}
     $('#brand_search').select2({
-      placeholder: 'Search and select brands',
-      ajax: {
-        url: "{{ url_for('dashboard.search_brands') }}",
-        dataType: 'json',
-        processResults: function (data) {
-          return { results: data.map(function (item) { return { id: item, text: item }; }) };
-        }
+  placeholder: 'Search and select brands',
+  ajax: {
+    url: "{{ url_for('dashboard.search_brands') }}",
+    dataType: 'json',
+    delay: 300,
+    transport: function (params, success, failure) {
+      if (isSubmitting) {
+        return; // 🚫 STOP AJAX DURING SUBMIT
       }
-    });
+      return $.ajax(params).done(success).fail(failure);
+    },
+    processResults: function (data) {
+      return {
+        results: data.map(item => ({ id: item, text: item }))
+      };
+    }
+  }
+});
+
+    // $('#brand_search').select2({
+    //   placeholder: 'Search and select brands',
+    //   ajax: {
+    //     url: "{{ url_for('dashboard.search_brands') }}",
+    //     dataType: 'json',
+    //     processResults: function (data) {
+    //       return { results: data.map(function (item) { return { id: item, text: item }; }) };
+    //     }
+    //   }
+    // });
 
     var initialBrands = "{{ form.brand_names.data or '' }}".split(',').map(function (i) { return i.trim(); }).filter(Boolean);
     $('#brand_search').val(initialBrands).trigger('change');
@@ -204,16 +150,45 @@
     {% endif %}
 
     {% if form.category_names is defined %}
+
+
     $('#category_search').select2({
-      placeholder: 'Search and select categories',
-      ajax: {
-        url: "{{ url_for('dashboard.search_categories') }}",
-        dataType: 'json',
-        processResults: function (data) {
-          return { results: data.map(function (item) { return { id: item, text: item }; }) };
-        }
+  placeholder: 'Search and select categories',
+  ajax: {
+    url: "{{ url_for('dashboard.search_categories') }}",
+    dataType: 'json',
+    delay: 300,
+    transport: function (params, success, failure) {
+      if (isSubmitting) {
+        return; // 🚫 STOP AJAX DURING SUBMIT
       }
-    });
+      return $.ajax(params).done(success).fail(failure);
+    },
+    processResults: function (data) {
+      return {
+        results: data.map(item => ({ id: item, text: item }))
+      };
+    }
+  }
+});
+
+    // $('#category_search').select2({
+    //   placeholder: 'Search and select categories',
+    //   ajax: {
+    //     url: "{{ url_for('dashboard.search_categories') }}",
+    //     dataType: 'json',
+    //     processResults: function (data) {
+
+    //       return { results: data.map(function (item) { return { id: item, text: item }; }) };
+    //     }
+    //   }
+    // });
+$('form').on('submit', function () {
+  isSubmitting = true;
+
+  // UX safety
+  $(this).find('button[type="submit"]').prop('disabled', true);
+});
 
     var initialCategories = "{{ form.category_names.data or '' }}".split(',').map(function (i) { return i.trim(); }).filter(Boolean);
     $('#category_search').val(initialCategories).trigger('change');
@@ -244,6 +219,115 @@
   });
   $('#category_search').val(initialCategories).trigger('change');
 
+</script> -->
+<script>
+  let isSubmitting = false;
+  let delayedSubmit = false;
+
+  $(document).ready(function () {
+
+    /* ================= BRAND SELECT ================= */
+    {% if form.brand_names is defined %}
+    $('#brand_search').select2({
+      placeholder: 'Search brands',
+      minimumInputLength: 1,   // 🔥 fetch ONLY when typing
+      ajax: {
+        url: "{{ url_for('dashboard.search_brands') }}",
+        dataType: 'json',
+        delay: 300,
+        transport: function (params, success, failure) {
+          if (isSubmitting) return;
+          return $.ajax(params).done(success).fail(failure);
+        },
+        processResults: function (data) {
+          return {
+            results: data.map(item => ({ id: item, text: item }))
+          };
+        }
+      }
+    });
+
+    // ✅ preload assigned brands (NO AJAX)
+    const initialBrands = "{{ form.brand_names.data or '' }}"
+      .split(',')
+      .map(v => v.trim())
+      .filter(Boolean);
+
+    initialBrands.forEach(b => {
+      const option = new Option(b, b, true, true);
+      $('#brand_search').append(option);
+    });
+
+    // update hidden field
+    $('#brand_search').on('change', function () {
+      $('#{{ form.brand_names.id }}').val(
+        $(this).val() ? $(this).val().join(',') : ''
+      );
+    });
+    {% endif %}
+
+    /* ================= CATEGORY SELECT ================= */
+    {% if form.category_names is defined %}
+    $('#category_search').select2({
+      placeholder: 'Search categories',
+      minimumInputLength: 1,   // 🔥 fetch ONLY when typing
+      ajax: {
+        url: "{{ url_for('dashboard.search_categories') }}",
+        dataType: 'json',
+        delay: 300,
+        transport: function (params, success, failure) {
+          if (isSubmitting) return;
+          return $.ajax(params).done(success).fail(failure);
+        },
+        processResults: function (data) {
+          return {
+            results: data.map(item => ({ id: item, text: item }))
+          };
+        }
+      }
+    });
+
+    // preload assigned categories (NO AJAX)
+    const initialCategories = "{{ form.category_names.data or '' }}"
+      .split(',')
+      .map(v => v.trim())
+      .filter(Boolean);
+
+    initialCategories.forEach(c => {
+      const option = new Option(c, c, true, true);
+      $('#category_search').append(option);
+    });
+
+    $('#category_search').on('change', function () {
+      $('#{{ form.category_names.id }}').val(
+        $(this).val() ? $(this).val().join(',') : ''
+      );
+    });
+    {% endif %}
+
+    /* ================= 4 SECOND DELAY SUBMIT ================= */
+    $('form').on('submit', function (e) {
+      if (delayedSubmit) return;
+
+      e.preventDefault();
+      delayedSubmit = true;
+      isSubmitting = true;
+
+      const form = this;
+      const btn = $(this).find('button[type="submit"]');
+
+      // UX
+      btn.prop('disabled', true).text('Updating...');
+
+      // ⏳ wait 4 seconds, then submit
+      setTimeout(function () {
+        form.submit();
+      }, 4000);
+    });
+
+  });
 </script>
+
+
 
 {% endblock %}

@@ -28,6 +28,11 @@ def create_app(config_object="config.DevConfig"):
     app.register_blueprint(user_bp)  # Uncomment if you implement user_controller
     app.register_blueprint(admin_bp)
 
+
+    @app.teardown_appcontext
+    def shutdown_session(exception=None):
+         db.session.remove()
+    
     register_errorhandlers(app)
 
     with app.app_context():
