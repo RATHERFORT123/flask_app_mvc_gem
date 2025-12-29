@@ -413,7 +413,6 @@ def get_unique_items(items):
 
     return unique_items
 
-
 @dashboard_bp.route("/admin/contracts/upload_excel", methods=["GET", "POST"])
 @login_required
 @admin_required
@@ -421,40 +420,135 @@ def upload_contracts_excel():
     form = ContractForm()
     if request.method == 'POST':
         file = request.files.get('excel_file')
+
+        # 🔵 ADD: file existence + extension check (already present, unchanged)
         if not file or not (file.filename.endswith('.xls') or file.filename.endswith('.xlsx')):
             flash("Upload a valid Excel file (.xls or .xlsx)", "danger")
             return redirect(request.url)
 
-        df = pd.read_excel(file)
+        # 🔵 ADD: reset file pointer (CRITICAL for large files)
+        file.stream.seek(0)
+
+        # 🔵 ADD: safe Excel reading with explicit engine
+        try:
+            df = pd.read_excel(file, engine="openpyxl")
+        except Exception as e:
+            flash(f"Failed to read Excel file: {str(e)}", "danger")
+            return redirect(request.url)
+
+        # 🔵 ADD: empty Excel check
+        if df.empty:
+            flash("Uploaded Excel file is empty.", "danger")
+            return redirect(request.url)
+
+        # existing code (unchanged)
         df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
+
+        # 🔵 ADD: required column validation
+        required_columns = {
+            'contract_id', 'status', 'organization_type', 'ministry', 'department',
+            'organization_name', 'office_zone', 'location', 'buyer_designation',
+            'buying_mode', 'bid_number', 'contract_date', 'total',
+            'service', 'category_name', 'product', 'brand', 'model',
+            'hsn_code', 'ordered_quantity', 'price'
+        }
+
+        missing = required_columns - set(df.columns)
+        if missing:
+            flash(f"Missing required columns: {', '.join(missing)}", "danger")
+            return redirect(request.url)
+
+        # existing code (unchanged)
         contract_map = {}
-        contract_fields = ['contract_id', 'status', 'organization_type', 'ministry', 'department',
-                           'organization_name', 'office_zone', 'location', 'buyer_designation',
-                           'buying_mode', 'bid_number', 'contract_date', 'total']
-        item_fields = ['service', 'category_name', 'product', 'brand', 'model', 'hsn_code', 'ordered_quantity', 'price']
+        contract_fields = [
+            'contract_id', 'status', 'organization_type', 'ministry', 'department',
+            'organization_name', 'office_zone', 'location', 'buyer_designation',
+            'buying_mode', 'bid_number', 'contract_date', 'total'
+        ]
+
+        item_fields = [
+            'service', 'category_name', 'product', 'brand',
+            'model', 'hsn_code', 'ordered_quantity', 'price'
+        ]
+
         for _, row in df.iterrows():
             cid = row['contract_id']
             if cid not in contract_map:
                 contract_map[cid] = {f: row.get(f) for f in contract_fields}
                 contract_map[cid]['items'] = []
+
             item = {f: row.get(f) for f in item_fields}
             contract_map[cid]['items'].append(item)
 
-        # Remove duplicate products per contract before saving
+        # existing code (unchanged)
         contracts = []
         for cid, contract_data in contract_map.items():
             contract_data['items'] = get_unique_items(contract_data['items'])
             contracts.append(contract_data)
 
         count = 0
+
+        # 🔵 ADD: DB save protection
         for contract_data in contracts:
-            if contract_repository.add_contract(contract_data):
-                count += 1
+            try:
+                if contract_repository.add_contract(contract_data):
+                    count += 1
+            except Exception as e:
+                # skip failed contract but continue others
+                continue
 
         flash(f"Successfully imported {count} contracts.", "success")
         return redirect(url_for('dashboard.manage_contracts'))
 
     return render_template("admin_contract_upload.html", form=form)
+
+
+
+
+
+
+
+# @dashboard_bp.route("/admin/contracts/upload_excel", methods=["GET", "POST"])
+# @login_required
+# @admin_required
+# def upload_contracts_excel():
+#     form = ContractForm()
+#     if request.method == 'POST':
+#         file = request.files.get('excel_file')
+#         if not file or not (file.filename.endswith('.xls') or file.filename.endswith('.xlsx')):
+#             flash("Upload a valid Excel file (.xls or .xlsx)", "danger")
+#             return redirect(request.url)
+
+#         df = pd.read_excel(file)
+#         df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
+#         contract_map = {}
+#         contract_fields = ['contract_id', 'status', 'organization_type', 'ministry', 'department',
+#                            'organization_name', 'office_zone', 'location', 'buyer_designation',
+#                            'buying_mode', 'bid_number', 'contract_date', 'total']
+#         item_fields = ['service', 'category_name', 'product', 'brand', 'model', 'hsn_code', 'ordered_quantity', 'price']
+#         for _, row in df.iterrows():
+#             cid = row['contract_id']
+#             if cid not in contract_map:
+#                 contract_map[cid] = {f: row.get(f) for f in contract_fields}
+#                 contract_map[cid]['items'] = []
+#             item = {f: row.get(f) for f in item_fields}
+#             contract_map[cid]['items'].append(item)
+
+#         # Remove duplicate products per contract before saving
+#         contracts = []
+#         for cid, contract_data in contract_map.items():
+#             contract_data['items'] = get_unique_items(contract_data['items'])
+#             contracts.append(contract_data)
+
+#         count = 0
+#         for contract_data in contracts:
+#             if contract_repository.add_contract(contract_data):
+#                 count += 1
+
+#         flash(f"Successfully imported {count} contracts.", "success")
+#         return redirect(url_for('dashboard.manage_contracts'))
+
+#     return render_template("admin_contract_upload.html", form=form)
 
 
 

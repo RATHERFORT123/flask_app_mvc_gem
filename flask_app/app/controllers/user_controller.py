@@ -88,6 +88,7 @@ class Pagination:
         self.prev_num = page - 1
         self.next_num = page + 1
 
+
 @user_bp.route("/contracts")
 @login_required
 def user_contracts():
@@ -106,6 +107,20 @@ def user_contracts():
     per_page = 10
 
     filters = parse_dynamic_filters(request.args)
+
+    # ✅ FIX 1: if no brand assigned → show no contracts
+    if not brand_set:
+        # flash("No brand assigned to your account.", "warning")
+        return render_template(
+            "user_contract_info.html",
+            contracts=[],
+            pagination=Pagination(page, per_page, 0),
+            user_brands=[],
+            assigned_start_date=assigned_start,
+            assigned_end_date=assigned_end,
+            filters_applied=filters
+        )
+
     base_query = Contract.query
 
     # Date range filter
@@ -121,7 +136,6 @@ def user_contracts():
             contract_date = None
 
     if not contract_date:
-        # Only fetch contracts within user's allowed range
         if assigned_start and assigned_end:
             base_query = base_query.filter(
                 and_(
@@ -136,9 +150,9 @@ def user_contracts():
     # Order by contract_date DESC
     base_query = base_query.order_by(Contract.contract_date.desc())
 
-    # Initial contracts (pre-brand filtering)
+    # Fetch contracts
     contracts = base_query.all()
-    
+
     # Brand filtering
     filtered_contracts = [c for c in contracts if contract_brand_match(c, brand_set)]
 
@@ -148,7 +162,7 @@ def user_contracts():
     paginated_contracts = filtered_contracts[start:end]
 
     pagination = Pagination(page, per_page, total)
-    
+
     return render_template(
         "user_contract_info.html",
         contracts=paginated_contracts,
@@ -158,6 +172,77 @@ def user_contracts():
         assigned_end_date=assigned_end,
         filters_applied=filters
     )
+
+# @user_bp.route("/contracts")
+# @login_required
+# def user_contracts():
+#     if not current_user.is_verified or current_user.is_blocked:
+#         abort(403)
+
+#     # Subscription validation
+#     if not current_user.subscription_date or current_user.subscription_date < datetime.utcnow().date():
+#         abort(403)
+
+#     brand_set = parse_list_csv(current_user.brand_names)
+#     assigned_start = current_user.assigned_date_range_start
+#     assigned_end = current_user.assigned_date_range_end
+
+#     page = request.args.get('page', 1, type=int)
+#     per_page = 10
+
+#     filters = parse_dynamic_filters(request.args)
+#     base_query = Contract.query
+
+#     # Date range filter
+#     contract_date_param = request.args.get("contract_date", None, type=str)
+#     contract_date = None
+#     if contract_date_param:
+#         try:
+#             date_obj = datetime.strptime(contract_date_param, "%Y-%m-%d").date()
+#             if assigned_start and assigned_end and assigned_start <= date_obj <= assigned_end:
+#                 contract_date = date_obj
+#                 filters["contract_date"] = contract_date_param
+#         except Exception:
+#             contract_date = None
+
+#     if not contract_date:
+#         # Only fetch contracts within user's allowed range
+#         if assigned_start and assigned_end:
+#             base_query = base_query.filter(
+#                 and_(
+#                     Contract.contract_date >= assigned_start,
+#                     Contract.contract_date <= assigned_end
+#                 )
+#             )
+
+#     # Apply other dynamic filters
+#     base_query = apply_contract_filters(base_query, filters)
+
+#     # Order by contract_date DESC
+#     base_query = base_query.order_by(Contract.contract_date.desc())
+
+#     # Initial contracts (pre-brand filtering)
+#     contracts = base_query.all()
+    
+#     # Brand filtering
+#     filtered_contracts = [c for c in contracts if contract_brand_match(c, brand_set)]
+
+#     total = len(filtered_contracts)
+#     start = (page - 1) * per_page
+#     end = start + per_page
+#     paginated_contracts = filtered_contracts[start:end]
+
+#     pagination = Pagination(page, per_page, total)
+#     if not brand_set:
+#       return render_template(
+#           "user_contract_info.html",
+#           contracts=paginated_contracts,
+#           pagination=pagination,
+#           user_brands=list(brand_set),
+#           assigned_start_date=assigned_start,
+#           assigned_end_date=assigned_end,
+#           filters_applied=filters
+#       )
 
 
 

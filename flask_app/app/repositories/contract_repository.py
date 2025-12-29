@@ -18,7 +18,9 @@ def parse_value(value, target_type=str):
             return None
     if target_type == 'datetime':
         try:
-            dt = pd.to_datetime(value, errors='coerce')
+            # dt = pd.to_datetime(value, errors='coerce')
+            dt = pd.to_datetime(value, dayfirst=True, errors='coerce')
+
             if pd.isna(dt):
                 return None
             return dt.to_pydatetime()
@@ -66,6 +68,8 @@ def get_contracts_filtered_paginated(filters, page=1, per_page=50):
             else:
                 query = query.filter(col.ilike(f"%{val}%"))
     return query.order_by(Contract.contract_date.desc()).paginate(page=page, per_page=per_page)
+
+
 
 def add_contract(contract_data):
     contract_id = parse_value(contract_data.get('contract_id'), str)
