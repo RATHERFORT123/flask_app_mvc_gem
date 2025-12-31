@@ -82,47 +82,6 @@ def admin_user_create():
     return render_template("admin_user_form.html", form=form, action="Create")
 
 
-# @dashboard_bp.route("/admin/users/<int:user_id>/edit", methods=["GET", "POST"])
-# @login_required
-# @admin_required
-# def admin_user_edit(user_id):
-#     u = user_repository.get_by_id(user_id)
-#     if not u:
-#         abort(404)
-#     form = UserForm(obj=u)
-#     if request.method == "GET":
-#         form.category_names.data = u.category_names
-#         form.brand_names.data = u.brand_names
-#         form.assigned_date_range_start.data = u.assigned_date_range_start
-#         form.assigned_date_range_end.data = u.assigned_date_range_end
-#         form.subscription_date.data = u.subscription_date
-#         form.amount.data = u.amount
-#         form.payment_status.data = u.payment_status
-#         form.subscription_plan.data = u.subscription_plan
-#     if form.validate_on_submit():
-#         user_repository.update_user(
-#             u,
-#             username=form.username.data,
-#             email=form.email.data,
-#             password=form.password.data or None,
-#             is_admin=form.is_admin.data,
-#             is_verified=form.is_verified.data,
-#             is_blocked=form.is_blocked.data,
-#             address=form.address.data,
-#             number=form.number.data,
-#             comment=form.comment.data,
-#             category_names=form.category_names.data,
-#             brand_names=form.brand_names.data,
-#             assigned_date_range_start=form.assigned_date_range_start.data,
-#             assigned_date_range_end=form.assigned_date_range_end.data,
-#             subscription_date=form.subscription_date.data,
-#             amount=form.amount.data,
-#             payment_status=form.payment_status.data,
-#             subscription_plan=form.subscription_plan.data
-#         )
-#         flash("User updated.", "success")
-#         return redirect(url_for("dashboard.admin_dashboard"))
-#     return render_template("admin_user_form.html", form=form, action="Update")
 
 from flask import current_app
 
@@ -231,27 +190,6 @@ def admin_user_toggle_block(user_id):
 
 
 
-# @dashboard_bp.route("/admin/search/brands")
-# @login_required
-# @admin_required
-# def search_brands():
-#     contracts = db.session.query(Contract.items).distinct().all()
-
-#     brands_set = set()
-#     for (items_json,) in contracts:  # items_json is already a list
-#         try:
-#             if not isinstance(items_json, list):
-#                 continue
-#             for item in items_json:
-#                 brand = item.get("brand")
-#                 if brand and brand != "NaN":
-#                     brands_set.add(str(brand).strip())
-#         except Exception:
-#             continue
-
-#     brands = sorted(brands_set)
-#     return jsonify(brands)
-from flask import request
 
 @dashboard_bp.route("/admin/search/brands")
 @login_required
@@ -275,16 +213,6 @@ def search_brands():
 
 
 
-# Category search fetch
-# @dashboard_bp.route("/admin/search/categories")
-# @login_required
-# @admin_required
-# def search_categories():
-#     categories_raw = db.session.query(Seller.category_name).distinct().all()
-#     categories = sorted([c[0] for c in categories_raw if c[0]])
-#     return jsonify(categories)
-
-from flask import request
 
 @dashboard_bp.route("/admin/search/categories")
 @login_required
@@ -565,54 +493,6 @@ def upload_contracts_excel():
 
 
 
-
-
-
-
-# @dashboard_bp.route("/admin/contracts/upload_excel", methods=["GET", "POST"])
-# @login_required
-# @admin_required
-# def upload_contracts_excel():
-#     form = ContractForm()
-#     if request.method == 'POST':
-#         file = request.files.get('excel_file')
-#         if not file or not (file.filename.endswith('.xls') or file.filename.endswith('.xlsx')):
-#             flash("Upload a valid Excel file (.xls or .xlsx)", "danger")
-#             return redirect(request.url)
-
-#         df = pd.read_excel(file)
-#         df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
-#         contract_map = {}
-#         contract_fields = ['contract_id', 'status', 'organization_type', 'ministry', 'department',
-#                            'organization_name', 'office_zone', 'location', 'buyer_designation',
-#                            'buying_mode', 'bid_number', 'contract_date', 'total']
-#         item_fields = ['service', 'category_name', 'product', 'brand', 'model', 'hsn_code', 'ordered_quantity', 'price']
-#         for _, row in df.iterrows():
-#             cid = row['contract_id']
-#             if cid not in contract_map:
-#                 contract_map[cid] = {f: row.get(f) for f in contract_fields}
-#                 contract_map[cid]['items'] = []
-#             item = {f: row.get(f) for f in item_fields}
-#             contract_map[cid]['items'].append(item)
-
-#         # Remove duplicate products per contract before saving
-#         contracts = []
-#         for cid, contract_data in contract_map.items():
-#             contract_data['items'] = get_unique_items(contract_data['items'])
-#             contracts.append(contract_data)
-
-#         count = 0
-#         for contract_data in contracts:
-#             if contract_repository.add_contract(contract_data):
-#                 count += 1
-
-#         flash(f"Successfully imported {count} contracts.", "success")
-#         return redirect(url_for('dashboard.manage_contracts'))
-
-#     return render_template("admin_contract_upload.html", form=form)
-
-
-
 @dashboard_bp.route("/admin/brands/manage", methods=["GET", "POST"])
 @login_required
 @admin_required
@@ -763,4 +643,158 @@ def upload_sellers_excel():
         return redirect(url_for('dashboard.manage_sellers'))
 
     return render_template('admin_seller_upload.html', form=form)
+
+
+
+
+from flask import (
+    Blueprint,
+    render_template,
+    jsonify,
+    abort
+)
+from flask_login import login_required, current_user
+import threading
+from flask import current_app
+
+from ..services.contract_excel_worker import (
+    process_next_pending,
+    retry_all_failed,
+    load_progress
+)
+
+# dashboard_bp = Blueprint("dashboard", __name__)
+
+# -------------------------------------------------
+# BACKGROUND THREAD RUNNER (WITH APP CONTEXT)
+# -------------------------------------------------
+_worker_thread = None
+
+
+def run_bg(task_func):
+    """
+    Run background task with Flask app context.
+    Prevent parallel execution.
+    """
+    global _worker_thread
+
+    if _worker_thread and _worker_thread.is_alive():
+        return False
+
+    app = current_app._get_current_object()
+
+    def wrapper():
+        with app.app_context():
+            task_func()
+
+    _worker_thread = threading.Thread(target=wrapper)
+    _worker_thread.daemon = True
+    _worker_thread.start()
+
+    return True
+
+
+# =================================================
+# ADMIN PAGE – EXCEL PROCESSOR UI
+# =================================================
+@dashboard_bp.route("/admin/contracts/excel-processor", methods=["GET"])
+@login_required
+def admin_contract_worker():
+    if not current_user.is_admin:
+        abort(403)
+
+    return render_template("admin_contract_worker.html")
+
+
+# =================================================
+# PROCESS ONE PENDING EXCEL FILE
+# =================================================
+@dashboard_bp.route("/admin/contracts/process-pending", methods=["POST"])
+@login_required
+def process_pending():
+    if not current_user.is_admin:
+        abort(403)
+
+    run_bg(process_next_pending)
+    return jsonify({"status": "started"})
+
+
+# =================================================
+# RETRY ALL FAILED FILES
+# =================================================
+@dashboard_bp.route("/admin/contracts/retry-all", methods=["POST"])
+@login_required
+def retry_all():
+    if not current_user.is_admin:
+        abort(403)
+
+    run_bg(retry_all_failed)
+    return jsonify({"status": "retry_started"})
+
+
+# =================================================
+# LIVE PROGRESS API (POLLING)
+# =================================================
+@dashboard_bp.route("/admin/contracts/progress", methods=["GET"])
+@login_required
+def progress():
+    if not current_user.is_admin:
+        abort(403)
+
+    return jsonify(load_progress())
+
+
+
+
+
+
+
+
+
+
+
+
+from ..services.seller_excel_worker import (
+    process_next_pending as process_seller_pending,
+    retry_all_failed as retry_seller_failed,
+    load_progress as seller_progress
+)
+
+# ---------------- SELLER UI ----------------
+
+@dashboard_bp.route("/admin/sellers/excel-processor", methods=["GET"])
+@login_required
+def admin_seller_worker():
+    if not current_user.is_admin:
+        abort(403)
+    return render_template("admin_seller_worker.html")
+
+
+@dashboard_bp.route("/admin/sellers/process-pending", methods=["POST"])
+@login_required
+def process_seller_excel():
+    if not current_user.is_admin:
+        abort(403)
+
+    run_bg(process_seller_pending)
+    return jsonify({"status": "started"})
+
+
+@dashboard_bp.route("/admin/sellers/retry-all", methods=["POST"])
+@login_required
+def retry_seller_excel():
+    if not current_user.is_admin:
+        abort(403)
+
+    run_bg(retry_seller_failed)
+    return jsonify({"status": "retry_started"})
+
+
+@dashboard_bp.route("/admin/sellers/progress", methods=["GET"])
+@login_required
+def seller_progress_api():
+    if not current_user.is_admin:
+        abort(403)
+
+    return jsonify(seller_progress())
 

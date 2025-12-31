@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Seller Excel Processor{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h4 class="mb-3">Seller Excel Processor (FTP Only)</h4>
+
+      <button class="btn btn-primary" id="btnPending">
+        Process Pending Sellers
+      </button>
+
+      <button class="btn btn-danger ms-2" id="btnRetry">
+        Retry ALL Failed
+      </button>
+
+      <div class="mt-3 text-muted" id="status">Idle</div>
+
+      <table class="table table-bordered table-sm mt-3">
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>Status</th>
+            <th>Inserted</th>
+            <th>Failed</th>
+            <th>Last Updated</th>
+          </tr>
+        </thead>
+        <tbody id="progressTable">
+          <tr>
+            <td colspan="5" class="text-center text-muted">
+              No data yet
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
+<script>
+const csrfToken = document
+  .querySelector('meta[name="csrf-token"]')
+  .getAttribute('content');
+
+let progressTimer = null;
+
+// -------------------- POST ACTION --------------------
+function post(url) {
+  document.getElementById("status").innerText = "Processing...";
+
+  fetch(url, {
+    method: "POST",
+    headers: { "X-CSRFToken": csrfToken }
+  })
+  .then(r => r.json())
+  .then(d => {
+    document.getElementById("status").innerText =
+      "Status: " + (d.status || "started");
+  });
+}
+
+// -------------------- BUTTON HANDLERS --------------------
+document.getElementById("btnPending").onclick = () => {
+  startPolling();
+  post("/admin/sellers/process-pending");
+};
+
+document.getElementById("btnRetry").onclick = () => {
+  startPolling();
+  post("/admin/sellers/retry-all");
+};
+
+// -------------------- POLLING CONTROL --------------------
+function startPolling() {
+  if (!progressTimer) {
+    progressTimer = setInterval(loadProgress, 2000);
+  }
+}
+
+function stopPolling() {
+  if (progressTimer) {
+    clearInterval(progressTimer);
+    progressTimer = null;
+  }
+}
+
+// -------------------- LOAD PROGRESS --------------------
+function loadProgress() {
+  fetch("/admin/sellers/progress")
+    .then(r => r.json())
+    .then(data => {
+      const tbody = document.getElementById("progressTable");
+      tbody.innerHTML = "";
+
+      const files = Object.keys(data).filter(k => k !== "_system");
+
+      // ✅ STOP polling if all files are completed
+      const allCompleted =
+        files.length > 0 &&
+        files.every(f => data[f].status === "completed");
+
+      if (allCompleted) {
+        document.getElementById("status").innerText =
+          "Idle – All seller files processed";
+        stopPolling(); // 🔥 FINAL STOP
+      }
+
+      if (files.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="text-center text-muted">
+              No progress data
+            </td>
+          </tr>`;
+        return;
+      }
+
+      files.forEach(file => {
+        const d = data[file];
+        tbody.innerHTML += `
+          <tr>
+            <td>${file}</td>
+            <td>${d.status}</td>
+            <td>${d.inserted}</td>
+            <td>${d.failed}</td>
+            <td>${d.updated}</td>
+          </tr>`;
+      });
+    });
+}
+
+// Start polling once on page load
+startPolling();
+</script>
+{% endblock %}

@@ -1,0 +1,61 @@
+{
+  "12-09-2025.xlsx": {
+    "status": "completed",
+    "inserted": 129,
+    "failed": 0,
+    "updated": "2025-12-31 14:59:13"
+  },
+  "15-09-2025.xlsx": {
+    "status": "completed",
+    "inserted": 203,
+    "failed": 0,
+    "updated": "2025-12-31 15:00:00"
+  },
+  "16-09-2025.xlsx": {
+    "status": "completed",
+    "inserted": 263,
+    "failed": 0,
+    "updated": "2025-12-31 15:00:02"
+  },
+  "17-09-2025.xlsx": {
+    "status": "completed",
+    "inserted": 241,
+    "failed": 0,
+    "updated": "2025-12-31 15:00:06"
+  },
+  "19-09-2025.xlsx": {
+    "status": "completed",
+    "inserted": 16908,
+    "failed": 0,
+    "updated": "2025-12-31 15:02:27"
+  },
+  "20-09-2025.xlsx": {
+    "status": "completed",
+    "inserted": 12171,
+    "failed": 0,
+    "updated": "2025-12-31 15:04:44"
+  },
+  "21-09-2025.xlsx": {
+    "status": "completed",
+    "inserted": 2996,
+    "failed": 0,
+    "updated": "2025-12-31 15:07:23"
+  },
+  "22-09-2025.xlsx": {
+    "status": "completed",
+    "inserted": 11741,
+    "failed": 0,
+    "updated": "2025-12-31 15:11:49"
+  },
+  "24-09-2025.xlsx": {
+    "status": "completed",
+    "inserted": 9601,
+    "failed": 0,
+    "updated": "2025-12-31 15:13:12"
+  },
+  "_system": {
+    "status": "idle",
+    "message": "No pending contract files",
+    "updated": "2025-12-31 16:52:28"
+  }
+}

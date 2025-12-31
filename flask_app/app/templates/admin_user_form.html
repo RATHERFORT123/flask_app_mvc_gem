@@ -230,7 +230,7 @@ $('form').on('submit', function () {
     {% if form.brand_names is defined %}
     $('#brand_search').select2({
       placeholder: 'Search brands',
-      minimumInputLength: 1,   // 🔥 fetch ONLY when typing
+      minimumInputLength: 1,   //  fetch ONLY when typing
       ajax: {
         url: "{{ url_for('dashboard.search_brands') }}",
         dataType: 'json',

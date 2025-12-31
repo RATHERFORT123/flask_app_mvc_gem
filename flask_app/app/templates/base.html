@@ -106,9 +106,22 @@
               </li>
               <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard.admin_dashboard') }}">Admin</a>
               </li>
-              <li class="nav-item">
+              <!-- <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('dashboard.admin_brand_manage') }}">Brand</a>
+              </li> -->
+ <li class="nav-item">
+               <a class="nav-link" href="{{ url_for('dashboard.admin_contract_worker') }}">
+  ECUP
+</a>
+
               </li>
+ <li class="nav-item">
+               <a class="nav-link" href="{{ url_for('dashboard.admin_seller_worker') }}">
+  ESUP
+</a>
+
+              </li>
+              
               <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('dashboard.admin_category_upload_excel') }}">Category</a>
               </li>
@@ -118,6 +131,7 @@
               <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('dashboard.manage_sellers') }}">Sellers</a>
               </li>
+
           </div>
           {% endif %}
           {% if current_user.is_authenticated and not current_user.is_admin %}
