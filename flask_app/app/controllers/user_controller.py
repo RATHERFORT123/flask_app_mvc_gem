@@ -666,19 +666,42 @@ def user_brands():
 
 
 
+# @user_bp.route("/api/brands/select2")
+# @login_required
+# def brands_select2():
+#     term = request.args.get("term", "").lower()
+#     brands_set = set()
+
+#     contracts = Contract.query.all()
+#     for c in contracts:
+#         for item in c.items or []:
+#             if isinstance(item, dict):
+#                 brand = safe_to_str(item.get("brand"))
+#                 if brand:
+#                     brands_set.add(brand.upper())
+
+#     if term:
+#         brands = [b for b in brands_set if term in b.lower()]
+#     else:
+#         brands = list(brands_set)
+
+#     return jsonify([
+#         {"id": b, "text": b}
+#         for b in sorted(brands)
+#     ])
+from ..models.brand import Brand   # ✅ REQUIRED IMPORT
+
 @user_bp.route("/api/brands/select2")
 @login_required
 def brands_select2():
     term = request.args.get("term", "").lower()
     brands_set = set()
 
-    contracts = Contract.query.all()
-    for c in contracts:
-        for item in c.items or []:
-            if isinstance(item, dict):
-                brand = safe_to_str(item.get("brand"))
-                if brand:
-                    brands_set.add(brand.upper())
+    brands = Brand.query.all()
+    for b in brands:
+        brand_name = safe_to_str(b.name)
+        if brand_name:
+            brands_set.add(brand_name.upper())
 
     if term:
         brands = [b for b in brands_set if term in b.lower()]
@@ -689,7 +712,6 @@ def brands_select2():
         {"id": b, "text": b}
         for b in sorted(brands)
     ])
-
 
 
 

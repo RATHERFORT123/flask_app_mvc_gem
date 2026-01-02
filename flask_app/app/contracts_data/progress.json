@@ -56,6 +56,12 @@
   "_system": {
     "status": "idle",
     "message": "No pending contract files",
-    "updated": "2025-12-31 18:16:11"
+    "updated": "2026-01-02 12:29:08"
+  },
+  "merged-1-25.xlsx": {
+    "status": "completed",
+    "inserted": 345074,
+    "failed": 0,
+    "updated": "2026-01-01 17:26:25"
   }
 }

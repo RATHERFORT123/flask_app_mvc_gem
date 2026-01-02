@@ -798,3 +798,149 @@ def seller_progress_api():
 
     return jsonify(seller_progress())
 
+
+
+
+
+
+
+from flask import render_template, redirect, url_for, flash, request
+from flask_login import login_required
+# from . import dashboard_bp
+# from ..decorators import admin_required
+from ..extensions import db
+from ..models.brand import Brand
+from ..models.contract import Contract
+from ..forms.brand_form import BrandForm
+
+
+# =====================================================
+# Helper: extract EXACT brand names from contracts
+# =====================================================
+
+def extract_exact_brands_from_contracts():
+    """
+    Returns a set of brand names EXACTLY as stored in contracts
+    (only trims leading/trailing spaces).
+    """
+    brands = set()
+
+    contracts = Contract.query.with_entities(Contract.items).all()
+    for (items,) in contracts:
+        if not items:
+            continue
+
+        for item in items:
+            if isinstance(item, dict):
+                brand = item.get("brand")
+                if isinstance(brand, str):
+                    brand = brand.strip()
+                    if brand:
+                        brands.add(brand)
+
+    return brands
+
+
+# =====================================================
+# Core logic: upload brands from contracts (exact)
+# =====================================================
+
+def upload_brands_from_contracts_exact():
+    # Existing brand names (exact match)
+    existing = {
+        b.name for b in Brand.query.with_entities(Brand.name).all()
+    }
+
+    found = extract_exact_brands_from_contracts()
+
+    inserted = 0
+    for brand_name in found:
+        if brand_name in existing:
+            continue
+
+        db.session.add(
+            Brand(
+                code=brand_name[:200],   # auto-generated code
+                name=brand_name,         # EXACT SAME NAME
+                product_count=0
+            )
+        )
+        inserted += 1
+
+    db.session.commit()
+    return len(found), inserted
+
+
+# =====================================================
+# Brand Management Page
+# =====================================================
+
+@dashboard_bp.route("/admin/brands", methods=["GET", "POST"])
+@login_required
+@admin_required
+def admin_brand_manage_page():
+
+    form = BrandForm()
+    edit_id = request.args.get("edit_id", type=int)
+    delete_id = request.args.get("delete_id", type=int)
+
+    # Delete brand
+    if delete_id:
+        brand = Brand.query.get_or_404(delete_id)
+        db.session.delete(brand)
+        db.session.commit()
+        flash("Brand deleted successfully.", "success")
+        return redirect(url_for("dashboard.admin_brand_manage_page"))
+
+    # Edit brand
+    editing_brand = None
+    if edit_id:
+        editing_brand = Brand.query.get_or_404(edit_id)
+        form.code.data = editing_brand.code
+        form.product_count.data = editing_brand.product_count
+        form.name.data = editing_brand.name
+
+    # Add / Update brand
+    if form.validate_on_submit():
+        if editing_brand:
+            editing_brand.code = form.code.data
+            editing_brand.product_count = form.product_count.data
+            editing_brand.name = form.name.data
+        else:
+            db.session.add(
+                Brand(
+                    code=form.code.data,
+                    product_count=form.product_count.data,
+                    name=form.name.data
+                )
+            )
+        db.session.commit()
+        flash("Brand saved successfully.", "success")
+        return redirect(url_for("dashboard.admin_brand_manage_page"))
+
+    brands = Brand.query.order_by(Brand.name).all()
+    return render_template(
+        "admin_brand_manage.html",
+        brands=brands,
+        form=form,
+        edit_brand=editing_brand
+    )
+
+
+# =====================================================
+# Upload Brands from Contracts (ADMIN ACTION)
+# =====================================================
+
+@dashboard_bp.route("/admin/brands/upload-from-contracts", methods=["POST"])
+@login_required
+@admin_required
+def admin_upload_brands_from_contracts_exact():
+
+    total_found, inserted = upload_brands_from_contracts_exact()
+
+    flash(
+        f"Upload completed. Found {total_found} brands in contracts, "
+        f"inserted {inserted} new brands.",
+        "success"
+    )
+    return redirect(url_for("dashboard.admin_brand_manage_page"))
